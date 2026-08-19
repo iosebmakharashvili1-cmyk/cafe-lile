@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getSession, logout, ApiError } from "./lib/api";
 import { LoginPage } from "./pages/LoginPage";
 import { BoardPage } from "./pages/BoardPage";
+import { MenuPage } from "./pages/MenuPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
 
@@ -12,7 +13,7 @@ type AuthState =
 
 export default function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "checking" });
-  const [activeTab, setActiveTab] = useState<"board" | "settings">("board");
+  const [activeTab, setActiveTab] = useState<"board" | "menu" | "settings">("board");
 
   useEffect(() => {
     getSession()
@@ -56,7 +57,13 @@ export default function App() {
         onTabChange={setActiveTab}
         onLogout={handleLogout}
       />
-      {activeTab === "board" ? <BoardPage onSessionExpired={handleSessionExpired} /> : <SettingsPage />}
+      {activeTab === "board" ? (
+        <BoardPage onSessionExpired={handleSessionExpired} />
+      ) : activeTab === "menu" ? (
+        <MenuPage />
+      ) : (
+        <SettingsPage />
+      )}
     </div>
   );
 }

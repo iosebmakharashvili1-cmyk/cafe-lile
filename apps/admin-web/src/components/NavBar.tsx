@@ -1,7 +1,7 @@
 interface NavBarProps {
   displayName: string;
-  activeTab: "board" | "settings";
-  onTabChange: (tab: "board" | "settings") => void;
+  activeTab: "board" | "menu" | "settings";
+  onTabChange: (tab: "board" | "menu" | "settings") => void;
   onLogout: () => void;
 }
 
@@ -42,6 +42,7 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
 
         <nav style={{ display: "flex", gap: 4 }}>
           <TabButton label="Orders" active={activeTab === "board"} onClick={() => onTabChange("board")} />
+          <TabButton label="Menu" active={activeTab === "menu"} onClick={() => onTabChange("menu")} />
           <TabButton label="Settings" active={activeTab === "settings"} onClick={() => onTabChange("settings")} />
         </nav>
       </div>

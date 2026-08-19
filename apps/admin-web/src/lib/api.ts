@@ -104,3 +104,65 @@ export function updateSettings(patch: Partial<{
 }>): Promise<{ ok: boolean }> {
   return request("/v1/admin/settings", { method: "PATCH", body: JSON.stringify(patch) });
 }
+
+// ---------- Menu management ----------
+
+export interface AdminMenuCategory {
+  id: string;
+  name: string;
+  sortOrder: number;
+  isVisible: boolean;
+}
+
+export interface AdminMenuItem {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string | null;
+  priceMinor: number;
+  imageUrl: string | null;
+  sortOrder: number;
+  isAvailable: boolean;
+  isArchived: boolean;
+}
+
+export function getAdminMenu(): Promise<{ categories: AdminMenuCategory[]; items: AdminMenuItem[] }> {
+  return request("/v1/admin/menu");
+}
+
+export function createCategory(body: { name: string; sortOrder?: number }): Promise<{ category: AdminMenuCategory }> {
+  return request("/v1/admin/menu/categories", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function updateCategory(
+  id: string,
+  patch: Partial<{ name: string; sortOrder: number; isVisible: boolean }>
+): Promise<{ ok: boolean }> {
+  return request(`/v1/admin/menu/categories/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function createMenuItem(body: {
+  categoryId: string;
+  name: string;
+  description?: string;
+  priceMinor: number;
+  imageUrl?: string;
+  sortOrder?: number;
+}): Promise<{ item: AdminMenuItem }> {
+  return request("/v1/admin/menu/items", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function updateMenuItem(
+  id: string,
+  patch: Partial<{
+    name: string;
+    description: string;
+    priceMinor: number;
+    imageUrl: string;
+    sortOrder: number;
+    isAvailable: boolean;
+    isArchived: boolean;
+  }>
+): Promise<{ ok: boolean }> {
+  return request(`/v1/admin/menu/items/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+}

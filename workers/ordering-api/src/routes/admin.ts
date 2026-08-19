@@ -2,8 +2,12 @@ import type { Env } from "../env";
 import {
   AdminLoginRequestSchema,
   UpdateOrderStatusRequestSchema,
+  CreateCategoryRequestSchema,
+  UpdateCategoryRequestSchema,
+  CreateMenuItemRequestSchema,
+  UpdateMenuItemRequestSchema,
 } from "@cafe-lile/contracts";
-import { ApiHttpError, jsonResponse, nowIso } from "../lib/http";
+import { ApiHttpError, jsonResponse, newId, nowIso } from "../lib/http";
 import { derivePasswordHash, timingSafeEqual, hashIp } from "../services/crypto";
 import {
   createSession,
@@ -30,7 +34,7 @@ export async function postAdminLogin(request: Request, env: Env): Promise<Respon
     // Generic failure message regardless of which validation failed (OWASP guidance).
     throw new ApiHttpError(401, "invalid_credentials", "Incorrect username or password.");
   }
-  
+
   const user = await env.DB.prepare(
     `SELECT id, password_hash as passwordHash, password_salt as passwordSalt,
             display_name as displayName, is_active as isActive
@@ -48,6 +52,16 @@ export async function postAdminLogin(request: Request, env: Env): Promise<Respon
   // Always derive a hash even on user-not-found, to avoid timing-based username enumeration.
   const candidateSalt = user?.passwordSalt ?? "AAAAAAAAAAAAAAAAAAAAAA";
   const candidateHash = await derivePasswordHash(parsed.data.password, candidateSalt);
+
+  // TEMP DEBUG — remove after diagnosing login mismatch
+  console.log("DEBUG login attempt:", {
+    username: parsed.data.username,
+    userFound: Boolean(user),
+    isActive: user?.isActive,
+    storedSalt: user?.passwordSalt,
+    storedHash: user?.passwordHash,
+    candidateHash,
+  });
 
   const ok = user && user.isActive && timingSafeEqual(candidateHash, user.passwordHash);
   if (!ok) {
@@ -235,6 +249,265 @@ export async function patchAdminSettings(request: Request, env: Env): Promise<Re
   await env.DB.prepare(`UPDATE restaurant_settings SET ${fields.join(", ")} WHERE id = ?`)
     .bind(...values)
     .run();
+
+  return jsonResponse({ ok: true });
+}
+
+// ---------- Menu management ----------
+
+export async function getAdminMenu(request: Request, env: Env): Promise<Response> {
+  await requireAdminSession(request, env);
+
+  const { results: categories } = await env.DB.prepare(
+    `SELECT id, name, sort_order as sortOrder, is_visible as isVisible
+     FROM menu_categories ORDER BY sort_order ASC`
+  ).all<{ id: string; name: string; sortOrder: number; isVisible: number }>();
+
+  const { results: items } = await env.DB.prepare(
+    `SELECT id, category_id as categoryId, name, description, price_minor as priceMinor,
+            image_url as imageUrl, sort_order as sortOrder, is_available as isAvailable,
+            is_archived as isArchived
+     FROM menu_items ORDER BY sort_order ASC`
+  ).all<{
+    id: string;
+    categoryId: string;
+    name: string;
+    description: string | null;
+    priceMinor: number;
+    imageUrl: string | null;
+    sortOrder: number;
+    isAvailable: number;
+    isArchived: number;
+  }>();
+
+  return jsonResponse({
+    categories: (categories ?? []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      sortOrder: c.sortOrder,
+      isVisible: Boolean(c.isVisible),
+    })),
+    items: (items ?? []).map((i) => ({
+      id: i.id,
+      categoryId: i.categoryId,
+      name: i.name,
+      description: i.description,
+      priceMinor: i.priceMinor,
+      imageUrl: i.imageUrl,
+      sortOrder: i.sortOrder,
+      isAvailable: Boolean(i.isAvailable),
+      isArchived: Boolean(i.isArchived),
+    })),
+  });
+}
+
+export async function postAdminCategory(request: Request, env: Env): Promise<Response> {
+  await requireAdminSession(request, env);
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+  }
+
+  const parsed = CreateCategoryRequestSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    throw new ApiHttpError(400, "invalid_category", parsed.error.issues[0]?.message ?? "Invalid category.");
+  }
+
+  const id = newId("cat");
+  const now = nowIso();
+  const sortOrder = parsed.data.sortOrder ?? 0;
+
+  await env.DB.prepare(
+    `INSERT INTO menu_categories (id, name, sort_order, is_visible, created_at, updated_at)
+     VALUES (?, ?, ?, 1, ?, ?)`
+  )
+    .bind(id, parsed.data.name, sortOrder, now, now)
+    .run();
+
+  return jsonResponse(
+    { category: { id, name: parsed.data.name, sortOrder, isVisible: true } },
+    { status: 201 }
+  );
+}
+
+export async function patchAdminCategory(request: Request, env: Env, categoryId: string): Promise<Response> {
+  await requireAdminSession(request, env);
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+  }
+
+  const parsed = UpdateCategoryRequestSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    throw new ApiHttpError(400, "invalid_category", parsed.error.issues[0]?.message ?? "Invalid category update.");
+  }
+
+  const fields: string[] = [];
+  const values: unknown[] = [];
+
+  if (parsed.data.name !== undefined) {
+    fields.push("name = ?");
+    values.push(parsed.data.name);
+  }
+  if (parsed.data.sortOrder !== undefined) {
+    fields.push("sort_order = ?");
+    values.push(parsed.data.sortOrder);
+  }
+  if (parsed.data.isVisible !== undefined) {
+    fields.push("is_visible = ?");
+    values.push(parsed.data.isVisible ? 1 : 0);
+  }
+
+  if (fields.length === 0) {
+    throw new ApiHttpError(400, "no_fields", "No valid fields provided.");
+  }
+
+  fields.push("updated_at = ?");
+  values.push(nowIso());
+  values.push(categoryId);
+
+  const result = await env.DB.prepare(`UPDATE menu_categories SET ${fields.join(", ")} WHERE id = ?`)
+    .bind(...values)
+    .run();
+
+  if (result.meta.changes === 0) {
+    throw new ApiHttpError(404, "category_not_found", "Category not found.");
+  }
+
+  return jsonResponse({ ok: true });
+}
+
+export async function postAdminMenuItem(request: Request, env: Env): Promise<Response> {
+  await requireAdminSession(request, env);
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+  }
+
+  const parsed = CreateMenuItemRequestSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    throw new ApiHttpError(400, "invalid_item", parsed.error.issues[0]?.message ?? "Invalid menu item.");
+  }
+
+  const category = await env.DB.prepare(`SELECT id FROM menu_categories WHERE id = ?`)
+    .bind(parsed.data.categoryId)
+    .first();
+  if (!category) {
+    throw new ApiHttpError(400, "unknown_category", "That category does not exist.");
+  }
+
+  const id = newId("item");
+  const now = nowIso();
+  const sortOrder = parsed.data.sortOrder ?? 0;
+
+  await env.DB.prepare(
+    `INSERT INTO menu_items (
+      id, category_id, name, description, price_minor, image_url, sort_order,
+      is_available, is_archived, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)`
+  )
+    .bind(
+      id,
+      parsed.data.categoryId,
+      parsed.data.name,
+      parsed.data.description ?? null,
+      parsed.data.priceMinor,
+      parsed.data.imageUrl ?? null,
+      sortOrder,
+      now,
+      now
+    )
+    .run();
+
+  return jsonResponse(
+    {
+      item: {
+        id,
+        categoryId: parsed.data.categoryId,
+        name: parsed.data.name,
+        description: parsed.data.description ?? null,
+        priceMinor: parsed.data.priceMinor,
+        imageUrl: parsed.data.imageUrl ?? null,
+        sortOrder,
+        isAvailable: true,
+        isArchived: false,
+      },
+    },
+    { status: 201 }
+  );
+}
+
+export async function patchAdminMenuItem(request: Request, env: Env, itemId: string): Promise<Response> {
+  await requireAdminSession(request, env);
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+  }
+
+  const parsed = UpdateMenuItemRequestSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    throw new ApiHttpError(400, "invalid_item", parsed.error.issues[0]?.message ?? "Invalid menu item update.");
+  }
+
+  const fields: string[] = [];
+  const values: unknown[] = [];
+
+  if (parsed.data.name !== undefined) {
+    fields.push("name = ?");
+    values.push(parsed.data.name);
+  }
+  if (parsed.data.description !== undefined) {
+    fields.push("description = ?");
+    values.push(parsed.data.description);
+  }
+  if (parsed.data.priceMinor !== undefined) {
+    fields.push("price_minor = ?");
+    values.push(parsed.data.priceMinor);
+  }
+  if (parsed.data.imageUrl !== undefined) {
+    fields.push("image_url = ?");
+    values.push(parsed.data.imageUrl);
+  }
+  if (parsed.data.sortOrder !== undefined) {
+    fields.push("sort_order = ?");
+    values.push(parsed.data.sortOrder);
+  }
+  if (parsed.data.isAvailable !== undefined) {
+    fields.push("is_available = ?");
+    values.push(parsed.data.isAvailable ? 1 : 0);
+  }
+  if (parsed.data.isArchived !== undefined) {
+    fields.push("is_archived = ?");
+    values.push(parsed.data.isArchived ? 1 : 0);
+  }
+
+  if (fields.length === 0) {
+    throw new ApiHttpError(400, "no_fields", "No valid fields provided.");
+  }
+
+  fields.push("updated_at = ?");
+  values.push(nowIso());
+  values.push(itemId);
+
+  const result = await env.DB.prepare(`UPDATE menu_items SET ${fields.join(", ")} WHERE id = ?`)
+    .bind(...values)
+    .run();
+
+  if (result.meta.changes === 0) {
+    throw new ApiHttpError(404, "item_not_found", "Menu item not found.");
+  }
 
   return jsonResponse({ ok: true });
 }

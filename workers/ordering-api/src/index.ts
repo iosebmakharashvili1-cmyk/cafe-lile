@@ -10,6 +10,11 @@ import {
   patchAdminOrderStatus,
   getAdminSettings,
   patchAdminSettings,
+  getAdminMenu,
+  postAdminCategory,
+  patchAdminCategory,
+  postAdminMenuItem,
+  patchAdminMenuItem,
 } from "./routes/admin";
 
 export default {
@@ -94,6 +99,25 @@ async function route(request: Request, env: Env, path: string): Promise<Response
   }
   if (method === "PATCH" && path === "/v1/admin/settings") {
     return patchAdminSettings(request, env);
+  }
+
+  // ---------- Admin: menu management ----------
+  if (method === "GET" && path === "/v1/admin/menu") {
+    return getAdminMenu(request, env);
+  }
+  if (method === "POST" && path === "/v1/admin/menu/categories") {
+    return postAdminCategory(request, env);
+  }
+  const categoryMatch = path.match(/^\/v1\/admin\/menu\/categories\/([^/]+)$/);
+  if (method === "PATCH" && categoryMatch && categoryMatch[1]) {
+    return patchAdminCategory(request, env, categoryMatch[1]);
+  }
+  if (method === "POST" && path === "/v1/admin/menu/items") {
+    return postAdminMenuItem(request, env);
+  }
+  const itemMatch = path.match(/^\/v1\/admin\/menu\/items\/([^/]+)$/);
+  if (method === "PATCH" && itemMatch && itemMatch[1]) {
+    return patchAdminMenuItem(request, env, itemMatch[1]);
   }
 
   throw new ApiHttpError(404, "not_found", "No such endpoint.");

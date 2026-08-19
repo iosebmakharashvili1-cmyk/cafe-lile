@@ -71,6 +71,42 @@ export const PublicMenuResponseSchema = z.object({
 });
 export type PublicMenuResponse = z.infer<typeof PublicMenuResponseSchema>;
 
+// ---------- Menu management (admin) ----------
+
+export const CreateCategoryRequestSchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  sortOrder: z.number().int().optional(),
+});
+export type CreateCategoryRequest = z.infer<typeof CreateCategoryRequestSchema>;
+
+export const UpdateCategoryRequestSchema = z.object({
+  name: z.string().trim().min(1).max(60).optional(),
+  sortOrder: z.number().int().optional(),
+  isVisible: z.boolean().optional(),
+});
+export type UpdateCategoryRequest = z.infer<typeof UpdateCategoryRequestSchema>;
+
+export const CreateMenuItemRequestSchema = z.object({
+  categoryId: z.string().min(1),
+  name: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(280).optional(),
+  priceMinor: z.number().int().nonnegative(),
+  imageUrl: z.string().trim().url().optional(),
+  sortOrder: z.number().int().optional(),
+});
+export type CreateMenuItemRequest = z.infer<typeof CreateMenuItemRequestSchema>;
+
+export const UpdateMenuItemRequestSchema = z.object({
+  name: z.string().trim().min(1).max(80).optional(),
+  description: z.string().trim().max(280).optional(),
+  priceMinor: z.number().int().nonnegative().optional(),
+  imageUrl: z.string().trim().url().optional(),
+  sortOrder: z.number().int().optional(),
+  isAvailable: z.boolean().optional(),
+  isArchived: z.boolean().optional(),
+});
+export type UpdateMenuItemRequest = z.infer<typeof UpdateMenuItemRequestSchema>;
+
 // ---------- Orders: customer-facing ----------
 
 // The customer may ONLY propose item id + quantity.
