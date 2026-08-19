@@ -86,11 +86,11 @@ export function sessionCookieHeader(rawToken: string, expiresAt: string): string
     0,
     Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
   );
-  return `${SESSION_COOKIE_NAME}=${rawToken}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAgeSeconds}`;
+  return `${SESSION_COOKIE_NAME}=${rawToken}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAgeSeconds}`;
 }
 
 export function clearSessionCookieHeader(): string {
-  return `${SESSION_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
+  return `${SESSION_COOKIE_NAME}=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0`;
 }
 
 export function readSessionCookie(request: Request): string | null {
