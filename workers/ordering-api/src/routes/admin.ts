@@ -30,15 +30,6 @@ export async function postAdminLogin(request: Request, env: Env): Promise<Respon
     // Generic failure message regardless of which validation failed (OWASP guidance).
     throw new ApiHttpError(401, "invalid_credentials", "Incorrect username or password.");
   }
-
-    console.log("DEBUG login attempt:", {
-    username: parsed.data.username,
-    userFound: Boolean(user),
-    isActive: user?.isActive,
-    storedSalt: user?.passwordSalt,
-    storedHash: user?.passwordHash,
-    candidateHash,
-  });
   
   const user = await env.DB.prepare(
     `SELECT id, password_hash as passwordHash, password_salt as passwordSalt,
