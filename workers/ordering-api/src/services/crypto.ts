@@ -1,4 +1,4 @@
-const PBKDF2_ITERATIONS = 210_000;
+const PBKDF2_ITERATIONS = 100_000;
 const HASH_BYTE_LEN = 32;
 
 function toBase64Url(bytes: Uint8Array): string {
