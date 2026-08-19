@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "ordering-staging",
-      "database_id": "REPLACE_WITH_STAGING_DATABASE_ID",
+      "database_id": "6baa2d2e-f4ed-427e-b2cb-993e769248cb",
       "migrations_dir": "migrations"
     }
   ],
@@ -27,7 +27,7 @@
         {
           "binding": "DB",
           "database_name": "ordering-staging",
-          "database_id": "REPLACE_WITH_STAGING_DATABASE_ID",
+          "database_id": "6baa2d2e-f4ed-427e-b2cb-993e769248cb",
           "migrations_dir": "migrations"
         }
       ],
@@ -51,7 +51,7 @@
         {
           "binding": "DB",
           "database_name": "ordering-prod",
-          "database_id": "REPLACE_WITH_PROD_DATABASE_ID",
+          "database_id": "ee8e28ad-520c-47e3-ad28-ea91839c6e22",
           "migrations_dir": "migrations"
         }
       ],
