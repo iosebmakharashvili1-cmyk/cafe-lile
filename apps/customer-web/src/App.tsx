@@ -41,10 +41,10 @@ export default function App() {
 
   async function handleCheckoutSubmit(data: {
     customerName: string;
-    customerPhone?: string;
+    customerPhone: string;
     customerNote?: string;
     fulfillmentMethod: FulfillmentMethod;
-    deliveryAddress?: string;
+    deliveryLocation?: { address: string; latitude: number; longitude: number };
   }) {
     setSubmitting(true);
     setSubmitError(null);

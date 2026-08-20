@@ -89,9 +89,7 @@ export async function postPublicOrder(request: Request, env: Env): Promise<Respo
     throw new ApiHttpError(400, "invalid_order", parsed.error.issues[0]?.message ?? "Invalid order payload.");
   }
 
-  if (parsed.data.fulfillmentMethod === "delivery" && !parsed.data.deliveryAddress) {
-    throw new ApiHttpError(400, "missing_delivery_address", "A delivery address is required for delivery orders.");
-  }
+  // Delivery-location requirement for delivery orders is enforced inside createOrder().
 
   const result = await createOrder(env, parsed.data, idempotencyKey);
   return jsonResponse(result, { status: 201 });

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import type { FulfillmentMethod } from "@cafe-lile/contracts";
+import { DELIVERY_FEE_MINOR } from "@cafe-lile/contracts";
 import { formatPrice } from "../lib/format";
+import { DeliveryMapPicker, type PickedLocation } from "./DeliveryMapPicker";
 
 interface CheckoutFormProps {
   subtotalMinor: number;
@@ -10,10 +12,10 @@ interface CheckoutFormProps {
   errorMessage: string | null;
   onSubmit: (data: {
     customerName: string;
-    customerPhone?: string;
+    customerPhone: string;
     customerNote?: string;
     fulfillmentMethod: FulfillmentMethod;
-    deliveryAddress?: string;
+    deliveryLocation?: { address: string; latitude: number; longitude: number };
   }) => void;
   onBack: () => void;
 }
@@ -31,8 +33,15 @@ export function CheckoutForm({
   const [note, setNote] = useState("");
   const [method, setMethod] = useState<FulfillmentMethod>("pickup");
   const [address, setAddress] = useState("");
+  const [pin, setPin] = useState<PickedLocation | null>(null);
 
-  const canSubmit = name.trim().length > 0 && (method === "pickup" || address.trim().length > 0);
+  const deliveryFeeMinor = method === "delivery" ? DELIVERY_FEE_MINOR : 0;
+  const totalMinor = subtotalMinor + deliveryFeeMinor;
+
+  const canSubmit =
+    name.trim().length > 0 &&
+    phone.trim().length >= 4 &&
+    (method === "pickup" || (address.trim().length > 0 && pin !== null));
 
   return (
     <div style={{ padding: "24px 20px", maxWidth: 480, margin: "0 auto" }}>
@@ -60,11 +69,11 @@ export function CheckoutForm({
         />
       </Field>
 
-      <Field label="Phone (optional)">
+      <Field label="Phone number">
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="For order updates"
+          placeholder="Required — for order updates"
           maxLength={30}
           style={inputStyle}
           type="tel"
@@ -72,15 +81,20 @@ export function CheckoutForm({
       </Field>
 
       {method === "delivery" && (
-        <Field label="Delivery address">
-          <input
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Street, building, apartment"
-            maxLength={240}
-            style={inputStyle}
-          />
-        </Field>
+        <>
+          <Field label="Delivery address">
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Street, building, apartment"
+              maxLength={240}
+              style={inputStyle}
+            />
+          </Field>
+          <Field label="Pin your location">
+            <DeliveryMapPicker value={pin} onChange={setPin} />
+          </Field>
+        </>
       )}
 
       <Field label="Note (optional)">
@@ -104,10 +118,30 @@ export function CheckoutForm({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
-          <span>Estimated total</span>
-          <span style={{ fontWeight: 700 }}>{formatPrice(subtotalMinor, currencyCode)}</span>
+          <span>Subtotal</span>
+          <span>{formatPrice(subtotalMinor, currencyCode)}</span>
         </div>
-        <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)" }}>
+        {method === "delivery" && (
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
+            <span>Delivery fee</span>
+            <span>{formatPrice(deliveryFeeMinor, currencyCode)}</span>
+          </div>
+        )}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 15,
+            fontWeight: 700,
+            marginTop: 8,
+            paddingTop: 8,
+            borderTop: "1px solid rgba(33,28,18,0.1)",
+          }}
+        >
+          <span>Total</span>
+          <span>{formatPrice(totalMinor, currencyCode)}</span>
+        </div>
+        <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8 }}>
           Payment is cash, due at {method === "pickup" ? "pickup" : "delivery"}.
         </div>
       </div>
@@ -133,10 +167,13 @@ export function CheckoutForm({
         onClick={() =>
           onSubmit({
             customerName: name.trim(),
-            customerPhone: phone.trim() || undefined,
+            customerPhone: phone.trim(),
             customerNote: note.trim() || undefined,
             fulfillmentMethod: method,
-            deliveryAddress: method === "delivery" ? address.trim() : undefined,
+            deliveryLocation:
+              method === "delivery" && pin
+                ? { address: address.trim(), latitude: pin.latitude, longitude: pin.longitude }
+                : undefined,
           })
         }
         style={{

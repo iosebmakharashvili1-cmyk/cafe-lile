@@ -15,6 +15,7 @@ import {
   patchAdminCategory,
   postAdminMenuItem,
   patchAdminMenuItem,
+  postAdminMenuImage,
 } from "./routes/admin";
 
 export default {
@@ -118,6 +119,9 @@ async function route(request: Request, env: Env, path: string): Promise<Response
   const itemMatch = path.match(/^\/v1\/admin\/menu\/items\/([^/]+)$/);
   if (method === "PATCH" && itemMatch && itemMatch[1]) {
     return patchAdminMenuItem(request, env, itemMatch[1]);
+  }
+  if (method === "POST" && path === "/v1/admin/menu/images") {
+    return postAdminMenuImage(request, env);
   }
 
   throw new ApiHttpError(404, "not_found", "No such endpoint.");

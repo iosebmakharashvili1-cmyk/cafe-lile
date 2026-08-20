@@ -100,8 +100,10 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
   const { results: orders } = await env.DB.prepare(
     `SELECT id, reference, status, customer_name as customerName, customer_phone as customerPhone,
             customer_note as customerNote, currency_code as currencyCode,
-            subtotal_minor as subtotalMinor, total_minor as totalMinor,
-            placed_at as placedAt, updated_at as updatedAt
+            fulfillment_method as fulfillmentMethod, delivery_address as deliveryAddress,
+            delivery_latitude as deliveryLatitude, delivery_longitude as deliveryLongitude,
+            subtotal_minor as subtotalMinor, delivery_fee_minor as deliveryFeeMinor,
+            total_minor as totalMinor, placed_at as placedAt, updated_at as updatedAt
      FROM orders
      WHERE status IN ('new', 'accepted', 'preparing', 'ready')
      ORDER BY placed_at ASC`
@@ -112,8 +114,13 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
     customerName: string;
     customerPhone: string | null;
     customerNote: string | null;
+    fulfillmentMethod: string;
+    deliveryAddress: string | null;
+    deliveryLatitude: number | null;
+    deliveryLongitude: number | null;
     currencyCode: string;
     subtotalMinor: number;
+    deliveryFeeMinor: number;
     totalMinor: number;
     placedAt: string;
     updatedAt: string;
@@ -157,8 +164,13 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
       customerName: o.customerName,
       customerPhone: o.customerPhone,
       customerNote: o.customerNote,
+      fulfillmentMethod: o.fulfillmentMethod,
+      deliveryAddress: o.deliveryAddress,
+      deliveryLatitude: o.deliveryLatitude,
+      deliveryLongitude: o.deliveryLongitude,
       currencyCode: o.currencyCode,
       subtotalMinor: o.subtotalMinor,
+      deliveryFeeMinor: o.deliveryFeeMinor,
       totalMinor: o.totalMinor,
       placedAt: o.placedAt,
       updatedAt: o.updatedAt,
@@ -510,4 +522,43 @@ export async function patchAdminMenuItem(request: Request, env: Env, itemId: str
   }
 
   return jsonResponse({ ok: true });
+}
+
+// ---------- Image upload ----------
+
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export async function postAdminMenuImage(request: Request, env: Env): Promise<Response> {
+  await requireAdminSession(request, env);
+
+  const contentType = request.headers.get("Content-Type") ?? "";
+  if (!ALLOWED_IMAGE_TYPES.has(contentType)) {
+    throw new ApiHttpError(
+      400,
+      "invalid_image_type",
+      "Image must be JPEG, PNG, or WebP."
+    );
+  }
+
+  const contentLength = Number(request.headers.get("Content-Length") ?? "0");
+  if (contentLength > MAX_IMAGE_BYTES) {
+    throw new ApiHttpError(400, "image_too_large", "Image must be under 5 MB.");
+  }
+
+  const extension = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+  const key = `menu-items/${newId("img")}.${extension}`;
+
+  const body = await request.arrayBuffer();
+  if (body.byteLength > MAX_IMAGE_BYTES) {
+    throw new ApiHttpError(400, "image_too_large", "Image must be under 5 MB.");
+  }
+
+  await env.MENU_IMAGES.put(key, body, {
+    httpMetadata: { contentType },
+  });
+
+  const publicUrl = `${env.MENU_IMAGES_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
+
+  return jsonResponse({ imageUrl: publicUrl }, { status: 201 });
 }

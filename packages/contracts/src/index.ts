@@ -120,12 +120,21 @@ export type OrderLineRequest = z.infer<typeof OrderLineRequestSchema>;
 export const FulfillmentMethodSchema = z.enum(["pickup", "delivery"]);
 export type FulfillmentMethod = z.infer<typeof FulfillmentMethodSchema>;
 
+export const DELIVERY_FEE_MINOR = 600; // 6.00 GEL flat delivery fee, v1
+
+export const DeliveryLocationSchema = z.object({
+  address: z.string().trim().min(1).max(240),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+export type DeliveryLocation = z.infer<typeof DeliveryLocationSchema>;
+
 export const CreateOrderRequestSchema = z.object({
   customerName: z.string().trim().min(1).max(80),
-  customerPhone: z.string().trim().max(30).optional(),
+  customerPhone: z.string().trim().min(4).max(30),
   customerNote: z.string().trim().max(280).optional(),
   fulfillmentMethod: FulfillmentMethodSchema,
-  deliveryAddress: z.string().trim().max(240).optional(),
+  deliveryLocation: DeliveryLocationSchema.optional(),
   lines: z.array(OrderLineRequestSchema).min(1).max(40),
 });
 export type CreateOrderRequest = z.infer<typeof CreateOrderRequestSchema>;
@@ -134,6 +143,8 @@ export const CreateOrderResponseSchema = z.object({
   order: z.object({
     reference: z.string(),
     status: z.enum(ORDER_STATUSES),
+    subtotalMinor: z.number().int(),
+    deliveryFeeMinor: z.number().int(),
     totalMinor: z.number().int(),
     currencyCode: z.string(),
     placedAt: z.string(),
@@ -164,8 +175,11 @@ export const AdminOrderSchema = z.object({
   customerNote: z.string().nullable(),
   fulfillmentMethod: FulfillmentMethodSchema,
   deliveryAddress: z.string().nullable(),
+  deliveryLatitude: z.number().nullable(),
+  deliveryLongitude: z.number().nullable(),
   currencyCode: z.string(),
   subtotalMinor: z.number().int(),
+  deliveryFeeMinor: z.number().int(),
   totalMinor: z.number().int(),
   placedAt: z.string(),
   updatedAt: z.string(),

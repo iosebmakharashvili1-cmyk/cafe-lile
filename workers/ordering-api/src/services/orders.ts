@@ -1,6 +1,6 @@
 import type { Env } from "../env";
 import type { CreateOrderRequest, OrderStatus } from "@cafe-lile/contracts";
-import { ALLOWED_TRANSITIONS } from "@cafe-lile/contracts";
+import { ALLOWED_TRANSITIONS, DELIVERY_FEE_MINOR } from "@cafe-lile/contracts";
 import { ApiHttpError, newId, nowIso } from "../lib/http";
 
 interface CanonicalMenuItem {
@@ -30,8 +30,9 @@ export async function createOrder(
 ) {
   // 1. Idempotency check first — cheap read, avoids duplicate work entirely.
   const existing = await env.DB.prepare(
-    `SELECT id, reference, status, total_minor as totalMinor, currency_code as currencyCode,
-            placed_at as placedAt
+    `SELECT id, reference, status, subtotal_minor as subtotalMinor,
+            delivery_fee_minor as deliveryFeeMinor, total_minor as totalMinor,
+            currency_code as currencyCode, placed_at as placedAt
      FROM orders WHERE idempotency_key = ?`
   )
     .bind(idempotencyKey)
@@ -39,6 +40,8 @@ export async function createOrder(
       id: string;
       reference: string;
       status: OrderStatus;
+      subtotalMinor: number;
+      deliveryFeeMinor: number;
       totalMinor: number;
       currencyCode: string;
       placedAt: string;
@@ -58,6 +61,8 @@ export async function createOrder(
       order: {
         reference: existing.reference,
         status: existing.status,
+        subtotalMinor: existing.subtotalMinor,
+        deliveryFeeMinor: existing.deliveryFeeMinor,
         totalMinor: existing.totalMinor,
         currencyCode: existing.currencyCode,
         placedAt: existing.placedAt,
@@ -69,6 +74,11 @@ export async function createOrder(
 
   if (!settings.accepting_orders) {
     throw new ApiHttpError(409, "not_accepting_orders", "Cafe Lile is not accepting orders right now.");
+  }
+
+  // Delivery orders must include a pinned location (address + coordinates from the map picker).
+  if (body.fulfillmentMethod === "delivery" && !body.deliveryLocation) {
+    throw new ApiHttpError(400, "missing_delivery_location", "Please pin a delivery location on the map.");
   }
 
   // 2. Reject duplicate item ids in the request body.
@@ -132,7 +142,8 @@ export async function createOrder(
   });
 
   const subtotalMinor = orderItemRows.reduce((sum, r) => sum + r.lineTotalMinor, 0);
-  const totalMinor = subtotalMinor; // no delivery fee / tax logic in v1
+  const deliveryFeeMinor = body.fulfillmentMethod === "delivery" ? DELIVERY_FEE_MINOR : 0;
+  const totalMinor = subtotalMinor + deliveryFeeMinor;
 
   // 5. Persist order header + line items + creation event atomically via D1 batch.
   const eventId = newId("evt");
@@ -141,18 +152,24 @@ export async function createOrder(
     env.DB.prepare(
       `INSERT INTO orders (
         id, reference, status, customer_name, customer_phone, customer_note,
-        payment_method, payment_status, currency_code, subtotal_minor, total_minor,
-        idempotency_key, placed_at, updated_at
-      ) VALUES (?, ?, 'new', ?, ?, ?, 'cash_pickup', 'unpaid', ?, ?, ?, ?, ?, ?)`
+        payment_method, payment_status, currency_code, subtotal_minor,
+        delivery_fee_minor, total_minor, fulfillment_method, delivery_address,
+        delivery_latitude, delivery_longitude, idempotency_key, placed_at, updated_at
+      ) VALUES (?, ?, 'new', ?, ?, ?, 'cash_pickup', 'unpaid', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       orderId,
       reference,
       body.customerName,
-      body.customerPhone ?? null,
+      body.customerPhone,
       body.customerNote ?? null,
       settings.currency_code,
       subtotalMinor,
+      deliveryFeeMinor,
       totalMinor,
+      body.fulfillmentMethod,
+      body.deliveryLocation?.address ?? null,
+      body.deliveryLocation?.latitude ?? null,
+      body.deliveryLocation?.longitude ?? null,
       idempotencyKey,
       placedAt,
       placedAt
@@ -176,6 +193,8 @@ export async function createOrder(
     order: {
       reference,
       status: "new" as OrderStatus,
+      subtotalMinor,
+      deliveryFeeMinor,
       totalMinor,
       currencyCode: settings.currency_code,
       placedAt,

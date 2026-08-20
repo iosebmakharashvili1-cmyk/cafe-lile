@@ -5,6 +5,7 @@ import {
   createCategory,
   createMenuItem,
   updateMenuItem,
+  uploadMenuImage,
   type AdminMenuCategory,
   type AdminMenuItem,
 } from "../lib/api";
@@ -32,7 +33,10 @@ export function MenuPage() {
     await refresh();
   }
 
-  async function handleAddItem(categoryId: string, data: { name: string; priceMinor: number; description?: string }) {
+  async function handleAddItem(
+    categoryId: string,
+    data: { name: string; priceMinor: number; description?: string; imageUrl?: string }
+  ) {
     await createMenuItem({ categoryId, ...data });
     setAddingItemToCategory(null);
     await refresh();
@@ -123,6 +127,29 @@ export function MenuPage() {
                       opacity: item.isAvailable ? 1 : 0.55,
                     }}
                   >
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt=""
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: "var(--radius-sm)",
+                          objectFit: "cover",
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: "var(--radius-sm)",
+                          background: "var(--color-yellow-tint)",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 600, fontSize: 14.5 }}>{item.name}</div>
                       {item.description && (
@@ -216,19 +243,52 @@ function QuickAddItem({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (data: { name: string; priceMinor: number; description?: string }) => void;
+  onSubmit: (data: { name: string; priceMinor: number; description?: string; imageUrl?: string }) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const priceMinor = Math.round(parseFloat(price || "0") * 100);
-  const canSubmit = name.trim().length > 0 && priceMinor > 0;
+  const canSubmit = name.trim().length > 0 && priceMinor > 0 && !isUploading;
 
   function submit() {
     if (!canSubmit) return;
-    onSubmit({ name: name.trim(), priceMinor, description: description.trim() || undefined });
+    onSubmit({
+      name: name.trim(),
+      priceMinor,
+      description: description.trim() || undefined,
+      imageUrl: imageUrl ?? undefined,
+    });
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setUploadError("Use a JPEG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Image must be under 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const result = await uploadMenuImage(file);
+      setImageUrl(result.imageUrl);
+    } catch {
+      setUploadError("Upload failed. Try again.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -245,34 +305,44 @@ function QuickAddItem({
         gap: 8,
       }}
     >
-      <div style={{ display: "flex", gap: 8 }}>
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Item name"
-          style={{ ...inputStyle, flex: 2 }}
-        />
-        <input
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="Price (GEL)"
-          type="number"
-          step="0.01"
-          min="0"
-          style={{ ...inputStyle, flex: 1 }}
-        />
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <ImageUploadSlot imageUrl={imageUrl} isUploading={isUploading} onFileSelect={handleFileSelect} />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Item name"
+              style={{ ...inputStyle, flex: 2 }}
+            />
+            <input
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Price (GEL)"
+              type="number"
+              step="0.01"
+              min="0"
+              style={{ ...inputStyle, flex: 1 }}
+            />
+          </div>
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description (optional)"
+            style={inputStyle}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") submit();
+              if (e.key === "Escape") onCancel();
+            }}
+          />
+        </div>
       </div>
-      <input
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Description (optional)"
-        style={inputStyle}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-          if (e.key === "Escape") onCancel();
-        }}
-      />
+
+      {uploadError && (
+        <div style={{ color: "var(--color-cancelled)", fontSize: 12.5 }}>{uploadError}</div>
+      )}
+
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={submit} disabled={!canSubmit} style={primaryButtonStyle}>
           Add item
@@ -282,6 +352,50 @@ function QuickAddItem({
         </button>
       </div>
     </motion.div>
+  );
+}
+
+function ImageUploadSlot({
+  imageUrl,
+  isUploading,
+  onFileSelect,
+}: {
+  imageUrl: string | null;
+  isUploading: boolean;
+  onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <label
+      style={{
+        width: 64,
+        height: 64,
+        borderRadius: "var(--radius-md)",
+        border: "1.5px dashed var(--color-yellow-deep)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        cursor: isUploading ? "wait" : "pointer",
+        overflow: "hidden",
+        background: imageUrl ? "transparent" : "var(--color-surface)",
+        position: "relative",
+      }}
+    >
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={onFileSelect}
+        disabled={isUploading}
+        style={{ display: "none" }}
+      />
+      {isUploading ? (
+        <span style={{ fontSize: 10, color: "var(--color-ink-soft)" }}>...</span>
+      ) : imageUrl ? (
+        <img src={imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        <span style={{ fontSize: 20, color: "var(--color-yellow-deep)" }}>+</span>
+      )}
+    </label>
   );
 }
 

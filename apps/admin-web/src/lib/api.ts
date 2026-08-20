@@ -65,8 +65,13 @@ export interface AdminOrderRow {
   customerName: string;
   customerPhone: string | null;
   customerNote: string | null;
+  fulfillmentMethod: "pickup" | "delivery";
+  deliveryAddress: string | null;
+  deliveryLatitude: number | null;
+  deliveryLongitude: number | null;
   currencyCode: string;
   subtotalMinor: number;
+  deliveryFeeMinor: number;
   totalMinor: number;
   placedAt: string;
   updatedAt: string;
@@ -150,6 +155,16 @@ export function createMenuItem(body: {
   sortOrder?: number;
 }): Promise<{ item: AdminMenuItem }> {
   return request("/v1/admin/menu/items", { method: "POST", body: JSON.stringify(body) });
+}
+
+export async function uploadMenuImage(file: File): Promise<{ imageUrl: string }> {
+  const res = await fetch(`${API_BASE}/v1/admin/menu/images`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": file.type },
+    body: file,
+  });
+  return handleResponse(res);
 }
 
 export function updateMenuItem(
