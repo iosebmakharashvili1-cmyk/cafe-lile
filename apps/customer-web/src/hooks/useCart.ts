@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { MenuItem } from "@cafe-lile/contracts";
 
 export interface CartLine {
@@ -6,24 +6,12 @@ export interface CartLine {
   quantity: number;
 }
 
-const CART_STORAGE_KEY = "cafe-lile-cart";
-const IDEMPOTENCY_STORAGE_KEY = "cafe-lile-idempotency-key";
-
-function loadCart(): CartLine[] {
-  try {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
+// Cart lives in memory only (React state), not localStorage/sessionStorage.
+// This is intentional: a hard reload should give the customer a clean cart,
+// while normal in-app navigation (menu <-> checkout) keeps it since the
+// React app never unmounts during that.
 export function useCart(menuItemsById: Map<string, MenuItem>) {
-  const [lines, setLines] = useState<CartLine[]>(loadCart);
-
-  useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(lines));
-  }, [lines]);
+  const [lines, setLines] = useState<CartLine[]>([]);
 
   const addItem = useCallback((menuItemId: string) => {
     setLines((prev) => {
@@ -56,8 +44,6 @@ export function useCart(menuItemsById: Map<string, MenuItem>) {
 
   const clearCart = useCallback(() => {
     setLines([]);
-    localStorage.removeItem(CART_STORAGE_KEY);
-    localStorage.removeItem(IDEMPOTENCY_STORAGE_KEY);
   }, []);
 
   const enrichedLines = useMemo(
@@ -82,16 +68,21 @@ export function useCart(menuItemsById: Map<string, MenuItem>) {
   return { lines, enrichedLines, subtotalMinor, itemCount, addItem, decrementItem, removeItem, clearCart };
 }
 
-/** One idempotency key per checkout attempt; persists across retries until success. */
+/**
+ * One idempotency key per checkout attempt, held in memory for the lifetime
+ * of the current checkout flow. Not persisted — a hard reload starting a
+ * fresh cart also means a fresh checkout attempt, which is the correct
+ * pairing (an old key tied to an abandoned cart should not be reused).
+ */
+let currentIdempotencyKey: string | null = null;
+
 export function getOrCreateIdempotencyKey(): string {
-  let key = localStorage.getItem(IDEMPOTENCY_STORAGE_KEY);
-  if (!key) {
-    key = crypto.randomUUID();
-    localStorage.setItem(IDEMPOTENCY_STORAGE_KEY, key);
+  if (!currentIdempotencyKey) {
+    currentIdempotencyKey = crypto.randomUUID();
   }
-  return key;
+  return currentIdempotencyKey;
 }
 
 export function clearIdempotencyKey(): void {
-  localStorage.removeItem(IDEMPOTENCY_STORAGE_KEY);
+  currentIdempotencyKey = null;
 }

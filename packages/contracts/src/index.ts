@@ -39,6 +39,7 @@ export const MenuItemSchema = z.object({
   categoryId: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  ingredients: z.array(z.string()),
   priceMinor: z.number().int().nonnegative(),
   imageUrl: z.string().nullable(),
   sortOrder: z.number().int(),
@@ -90,6 +91,7 @@ export const CreateMenuItemRequestSchema = z.object({
   categoryId: z.string().min(1),
   name: z.string().trim().min(1).max(80),
   description: z.string().trim().max(280).optional(),
+  ingredients: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
   priceMinor: z.number().int().nonnegative(),
   imageUrl: z.string().trim().url().optional(),
   sortOrder: z.number().int().optional(),
@@ -99,6 +101,7 @@ export type CreateMenuItemRequest = z.infer<typeof CreateMenuItemRequestSchema>;
 export const UpdateMenuItemRequestSchema = z.object({
   name: z.string().trim().min(1).max(80).optional(),
   description: z.string().trim().max(280).optional(),
+  ingredients: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
   priceMinor: z.number().int().nonnegative().optional(),
   imageUrl: z.string().trim().url().optional(),
   sortOrder: z.number().int().optional(),

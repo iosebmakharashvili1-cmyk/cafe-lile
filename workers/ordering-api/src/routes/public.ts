@@ -3,6 +3,19 @@ import { CreateOrderRequestSchema } from "@cafe-lile/contracts";
 import { ApiHttpError, jsonResponse } from "../lib/http";
 import { createOrder } from "../services/orders";
 
+/** Safely parses the ingredients JSON column; never throws on malformed/missing data. */
+function parseIngredients(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((x): x is string => typeof x === "string");
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 export async function getPublicMenu(env: Env): Promise<Response> {
   const settings = await env.DB.prepare(
     `SELECT restaurant_name as restaurantName, currency_code as currencyCode,
@@ -27,15 +40,16 @@ export async function getPublicMenu(env: Env): Promise<Response> {
   ).all<{ id: string; name: string; sortOrder: number; isVisible: number }>();
 
   const { results: items } = await env.DB.prepare(
-    `SELECT id, category_id as categoryId, name, description, price_minor as priceMinor,
-            image_url as imageUrl, sort_order as sortOrder, is_available as isAvailable,
-            is_archived as isArchived
+    `SELECT id, category_id as categoryId, name, description, ingredients,
+            price_minor as priceMinor, image_url as imageUrl, sort_order as sortOrder,
+            is_available as isAvailable, is_archived as isArchived
      FROM menu_items WHERE is_archived = 0 AND is_available = 1 ORDER BY sort_order ASC`
   ).all<{
     id: string;
     categoryId: string;
     name: string;
     description: string | null;
+    ingredients: string;
     priceMinor: number;
     imageUrl: string | null;
     sortOrder: number;
@@ -62,6 +76,7 @@ export async function getPublicMenu(env: Env): Promise<Response> {
       categoryId: i.categoryId,
       name: i.name,
       description: i.description,
+      ingredients: parseIngredients(i.ingredients),
       priceMinor: i.priceMinor,
       imageUrl: i.imageUrl,
       sortOrder: i.sortOrder,

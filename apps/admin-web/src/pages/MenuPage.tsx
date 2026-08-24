@@ -157,6 +157,11 @@ export function MenuPage() {
                           {item.description}
                         </div>
                       )}
+                      {item.ingredients.length > 0 && (
+                        <div style={{ fontSize: 11.5, color: "var(--color-yellow-deep)", marginTop: 3 }}>
+                          {item.ingredients.join(" · ")}
+                        </div>
+                      )}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 14, flexShrink: 0 }}>
                       {formatPrice(item.priceMinor, "GEL")}
@@ -243,12 +248,19 @@ function QuickAddItem({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (data: { name: string; priceMinor: number; description?: string; imageUrl?: string }) => void;
+  onSubmit: (data: {
+    name: string;
+    priceMinor: number;
+    description?: string;
+    ingredients?: string[];
+    imageUrl?: string;
+  }) => void;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [ingredientsText, setIngredientsText] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -258,10 +270,15 @@ function QuickAddItem({
 
   function submit() {
     if (!canSubmit) return;
+    const ingredients = ingredientsText
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
     onSubmit({
       name: name.trim(),
       priceMinor,
       description: description.trim() || undefined,
+      ingredients: ingredients.length > 0 ? ingredients : undefined,
       imageUrl: imageUrl ?? undefined,
     });
   }
@@ -330,6 +347,12 @@ function QuickAddItem({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description (optional)"
+            style={inputStyle}
+          />
+          <input
+            value={ingredientsText}
+            onChange={(e) => setIngredientsText(e.target.value)}
+            placeholder="Ingredients, comma separated (e.g. tomato, mozzarella, basil)"
             style={inputStyle}
             onKeyDown={(e) => {
               if (e.key === "Enter") submit();

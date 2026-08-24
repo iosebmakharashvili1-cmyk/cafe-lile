@@ -124,6 +124,7 @@ export interface AdminMenuItem {
   categoryId: string;
   name: string;
   description: string | null;
+  ingredients: string[];
   priceMinor: number;
   imageUrl: string | null;
   sortOrder: number;
@@ -150,6 +151,7 @@ export function createMenuItem(body: {
   categoryId: string;
   name: string;
   description?: string;
+  ingredients?: string[];
   priceMinor: number;
   imageUrl?: string;
   sortOrder?: number;
@@ -172,6 +174,7 @@ export function updateMenuItem(
   patch: Partial<{
     name: string;
     description: string;
+    ingredients: string[];
     priceMinor: number;
     imageUrl: string;
     sortOrder: number;

@@ -19,6 +19,19 @@ import {
 import { requireAdminSession } from "../middleware/auth";
 import { updateOrderStatus } from "../services/orders";
 
+/** Safely parses the ingredients JSON column; never throws on malformed/missing data. */
+function parseIngredients(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((x): x is string => typeof x === "string");
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 // ---------- Auth ----------
 
 export async function postAdminLogin(request: Request, env: Env): Promise<Response> {
@@ -276,15 +289,16 @@ export async function getAdminMenu(request: Request, env: Env): Promise<Response
   ).all<{ id: string; name: string; sortOrder: number; isVisible: number }>();
 
   const { results: items } = await env.DB.prepare(
-    `SELECT id, category_id as categoryId, name, description, price_minor as priceMinor,
-            image_url as imageUrl, sort_order as sortOrder, is_available as isAvailable,
-            is_archived as isArchived
+    `SELECT id, category_id as categoryId, name, description, ingredients,
+            price_minor as priceMinor, image_url as imageUrl, sort_order as sortOrder,
+            is_available as isAvailable, is_archived as isArchived
      FROM menu_items ORDER BY sort_order ASC`
   ).all<{
     id: string;
     categoryId: string;
     name: string;
     description: string | null;
+    ingredients: string;
     priceMinor: number;
     imageUrl: string | null;
     sortOrder: number;
@@ -304,6 +318,7 @@ export async function getAdminMenu(request: Request, env: Env): Promise<Response
       categoryId: i.categoryId,
       name: i.name,
       description: i.description,
+      ingredients: parseIngredients(i.ingredients),
       priceMinor: i.priceMinor,
       imageUrl: i.imageUrl,
       sortOrder: i.sortOrder,
@@ -420,18 +435,20 @@ export async function postAdminMenuItem(request: Request, env: Env): Promise<Res
   const id = newId("item");
   const now = nowIso();
   const sortOrder = parsed.data.sortOrder ?? 0;
+  const ingredientsJson = JSON.stringify(parsed.data.ingredients ?? []);
 
   await env.DB.prepare(
     `INSERT INTO menu_items (
-      id, category_id, name, description, price_minor, image_url, sort_order,
+      id, category_id, name, description, ingredients, price_minor, image_url, sort_order,
       is_available, is_archived, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)`
   )
     .bind(
       id,
       parsed.data.categoryId,
       parsed.data.name,
       parsed.data.description ?? null,
+      ingredientsJson,
       parsed.data.priceMinor,
       parsed.data.imageUrl ?? null,
       sortOrder,
@@ -447,6 +464,7 @@ export async function postAdminMenuItem(request: Request, env: Env): Promise<Res
         categoryId: parsed.data.categoryId,
         name: parsed.data.name,
         description: parsed.data.description ?? null,
+        ingredients: parsed.data.ingredients ?? [],
         priceMinor: parsed.data.priceMinor,
         imageUrl: parsed.data.imageUrl ?? null,
         sortOrder,
@@ -483,6 +501,10 @@ export async function patchAdminMenuItem(request: Request, env: Env, itemId: str
   if (parsed.data.description !== undefined) {
     fields.push("description = ?");
     values.push(parsed.data.description);
+  }
+  if (parsed.data.ingredients !== undefined) {
+    fields.push("ingredients = ?");
+    values.push(JSON.stringify(parsed.data.ingredients));
   }
   if (parsed.data.priceMinor !== undefined) {
     fields.push("price_minor = ?");
