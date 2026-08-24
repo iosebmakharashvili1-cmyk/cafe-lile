@@ -1,21 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import * as maptilersdk from "@maptiler/sdk";
+import "@maptiler/sdk/dist/maptiler-sdk.css";
 
-// Default marker icon URLs need explicit config in bundlers like Vite,
-// since Leaflet's default asset paths assume a plain script-tag setup.
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+// Free MapTiler API key — public by design (used client-side), scoped to this domain
+// in the MapTiler dashboard for production. Free tier: 5,000 map sessions/month.
+maptilersdk.config.apiKey = import.meta.env.VITE_MAPTILER_API_KEY ?? "";
 
 // Tbilisi city center — reasonable default view for Cafe Lile's delivery area.
-const DEFAULT_CENTER: [number, number] = [41.7151, 44.8271];
+const DEFAULT_CENTER: [number, number] = [44.8271, 41.7151]; // [lng, lat] for MapTiler
 const DEFAULT_ZOOM = 13;
 
 export interface PickedLocation {
@@ -30,26 +22,27 @@ interface DeliveryMapPickerProps {
 
 export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+  const mapRef = useRef<maptilersdk.Map | null>(null);
+  const markerRef = useRef<maptilersdk.Marker | null>(null);
   const [isLocating, setLocating] = useState(false);
+  const [mapStyle, setMapStyle] = useState<"satellite" | "streets">("satellite");
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const map = L.map(containerRef.current, {
-      center: value ? [value.latitude, value.longitude] : DEFAULT_CENTER,
+    const map = new maptilersdk.Map({
+      container: containerRef.current,
+      style: maptilersdk.MapStyle.HYBRID, // satellite + labels
+      center: value ? [value.longitude, value.latitude] : DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
+      navigationControl: true,
+      geolocateControl: false,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
-    map.on("click", (e: L.LeafletMouseEvent) => {
-      placeMarker(e.latlng.lat, e.latlng.lng);
-      onChange({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+    map.on("click", (e) => {
+      const { lat, lng } = e.lngLat;
+      placeMarker(lat, lng);
+      onChange({ latitude: lat, longitude: lng });
     });
 
     mapRef.current = map;
@@ -68,9 +61,11 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
   function placeMarker(lat: number, lng: number) {
     if (!mapRef.current) return;
     if (markerRef.current) {
-      markerRef.current.setLatLng([lat, lng]);
+      markerRef.current.setLngLat([lng, lat]);
     } else {
-      markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
+      markerRef.current = new maptilersdk.Marker({ color: "#F5B700" })
+        .setLngLat([lng, lat])
+        .addTo(mapRef.current);
     }
   }
 
@@ -81,7 +76,7 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
       (position) => {
         const { latitude, longitude } = position.coords;
         if (mapRef.current) {
-          mapRef.current.setView([latitude, longitude], 16);
+          mapRef.current.flyTo({ center: [longitude, latitude], zoom: 16 });
         }
         placeMarker(latitude, longitude);
         onChange({ latitude, longitude });
@@ -92,17 +87,49 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
     );
   }
 
+  function toggleStyle() {
+    if (!mapRef.current) return;
+    const next = mapStyle === "satellite" ? "streets" : "satellite";
+    mapRef.current.setStyle(
+      next === "satellite" ? maptilersdk.MapStyle.HYBRID : maptilersdk.MapStyle.STREETS
+    );
+    setMapStyle(next);
+  }
+
   return (
     <div>
-      <div
-        ref={containerRef}
-        style={{
-          height: 260,
-          borderRadius: "var(--radius-md)",
-          overflow: "hidden",
-          border: "1.5px solid var(--color-line)",
-        }}
-      />
+      <div style={{ position: "relative" }}>
+        <div
+          ref={containerRef}
+          style={{
+            height: 260,
+            borderRadius: "var(--radius-md)",
+            overflow: "hidden",
+            border: "1.5px solid var(--color-line)",
+          }}
+        />
+        <button
+          type="button"
+          onClick={toggleStyle}
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            zIndex: 10,
+            border: "none",
+            background: "var(--color-surface)",
+            color: "var(--color-ink)",
+            borderRadius: "var(--radius-sm)",
+            padding: "6px 10px",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+          }}
+        >
+          {mapStyle === "satellite" ? "Street view" : "Satellite view"}
+        </button>
+      </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
         <span style={{ fontSize: 12.5, color: "var(--color-ink-soft)" }}>
           {value ? "Tap the map to adjust the pin" : "Tap the map to drop a pin at your delivery location"}
