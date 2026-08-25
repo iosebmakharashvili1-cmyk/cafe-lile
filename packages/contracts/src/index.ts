@@ -110,20 +110,83 @@ export const UpdateMenuItemRequestSchema = z.object({
 });
 export type UpdateMenuItemRequest = z.infer<typeof UpdateMenuItemRequestSchema>;
 
+// ---------- Delivery zones ----------
+
+export interface DeliveryZone {
+  name: string;
+  latitude: number;
+  longitude: number;
+  feeMinor: number;
+}
+
+// Village centroids (OpenStreetMap data). Cafe Lile sits in Mukhrani;
+// the delivery fee is decided by which village area the customer's pin falls in.
+export const DELIVERY_ZONES: DeliveryZone[] = [
+  { name: "Mukhrani", latitude: 41.93389, longitude: 44.57667, feeMinor: 200 },
+  { name: "Ksovrisi", latitude: 41.98667, longitude: 44.51903, feeMinor: 600 },
+  { name: "Dzalisi", latitude: 41.9621, longitude: 44.5979, feeMinor: 600 },
+  { name: "Vaziani", latitude: 41.96694, longitude: 44.56556, feeMinor: 600 },
+  { name: "Vardisubani", latitude: 41.94895, longitude: 44.53962, feeMinor: 600 },
+  { name: "Iltoza", latitude: 42.00853, longitude: 44.53684, feeMinor: 700 },
+  { name: "Odzisi", latitude: 42.04571, longitude: 44.49999, feeMinor: 700 },
+];
+
+// Pins farther than this from every village centroid count as out-of-area.
+export const DELIVERY_ZONE_RADIUS_KM = 4;
+export const OUT_OF_AREA_DELIVERY_FEE_MINOR = 700; // highest zone fee
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * Resolves the delivery fee for a pinned location. Pure + shared so the client
+ * can preview exactly what the server will charge (the server re-runs this on
+ * every order — its result is authoritative).
+ */
+export function resolveDeliveryZone(
+  latitude: number,
+  longitude: number
+): { zone: DeliveryZone | null; feeMinor: number } {
+  let best: DeliveryZone | null = null;
+  let bestKm = Infinity;
+  for (const zone of DELIVERY_ZONES) {
+    const km = haversineKm(latitude, longitude, zone.latitude, zone.longitude);
+    if (km < bestKm) {
+      bestKm = km;
+      best = zone;
+    }
+  }
+  if (best && bestKm <= DELIVERY_ZONE_RADIUS_KM) {
+    return { zone: best, feeMinor: best.feeMinor };
+  }
+  return { zone: null, feeMinor: OUT_OF_AREA_DELIVERY_FEE_MINOR };
+}
+
 // ---------- Orders: customer-facing ----------
 
-// The customer may ONLY propose item id + quantity.
+// The customer may ONLY propose item id + quantity (+ which ingredients to leave out).
 // Price, availability, totals, status are always server-decided (blueprint section 4.1).
 export const OrderLineRequestSchema = z.object({
   menuItemId: z.string().min(1).max(100),
   quantity: z.number().int().min(1).max(20),
+  // Ingredients the customer wants removed from this dish. Server validates
+  // these against the item's actual ingredient list before persisting.
+  excludedIngredients: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
 });
 export type OrderLineRequest = z.infer<typeof OrderLineRequestSchema>;
 
 export const FulfillmentMethodSchema = z.enum(["pickup", "delivery"]);
 export type FulfillmentMethod = z.infer<typeof FulfillmentMethodSchema>;
-
-export const DELIVERY_FEE_MINOR = 600; // 6.00 GEL flat delivery fee, v1
 
 export const DeliveryLocationSchema = z.object({
   address: z.string().trim().min(1).max(240),
@@ -166,6 +229,7 @@ export const OrderItemSchema = z.object({
   unitPriceMinor: z.number().int(),
   quantity: z.number().int(),
   lineTotalMinor: z.number().int(),
+  excludedIngredients: z.array(z.string()),
 });
 export type OrderItem = z.infer<typeof OrderItemSchema>;
 

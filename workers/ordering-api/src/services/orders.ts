@@ -1,6 +1,6 @@
 import type { Env } from "../env";
 import type { CreateOrderRequest, OrderStatus } from "@cafe-lile/contracts";
-import { ALLOWED_TRANSITIONS, DELIVERY_FEE_MINOR } from "@cafe-lile/contracts";
+import { ALLOWED_TRANSITIONS, resolveDeliveryZone } from "@cafe-lile/contracts";
 import { ApiHttpError, newId, nowIso } from "../lib/http";
 
 interface CanonicalMenuItem {
@@ -9,6 +9,20 @@ interface CanonicalMenuItem {
   priceMinor: number;
   isAvailable: boolean;
   isArchived: boolean;
+  ingredients: string[];
+}
+
+/** Safely parses an ingredients JSON column; never throws on malformed/missing data. */
+function parseIngredients(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((x): x is string => typeof x === "string");
+    }
+    return [];
+  } catch {
+    return [];
+  }
 }
 
 interface RestaurantSettingsRow {
@@ -94,11 +108,12 @@ export async function createOrder(
   const ids = body.lines.map((l) => l.menuItemId);
   const placeholders = ids.map(() => "?").join(",");
   const { results: menuRows } = await env.DB.prepare(
-    `SELECT id, name, price_minor as priceMinor, is_available as isAvailable, is_archived as isArchived
+    `SELECT id, name, price_minor as priceMinor, ingredients,
+            is_available as isAvailable, is_archived as isArchived
      FROM menu_items WHERE id IN (${placeholders})`
   )
     .bind(...ids)
-    .all<{ id: string; name: string; priceMinor: number; isAvailable: number; isArchived: number }>();
+    .all<{ id: string; name: string; priceMinor: number; ingredients: string; isAvailable: number; isArchived: number }>();
 
   const canonicalById = new Map<string, CanonicalMenuItem>(
     (menuRows ?? []).map((r) => [
@@ -107,6 +122,7 @@ export async function createOrder(
         id: r.id,
         name: r.name,
         priceMinor: r.priceMinor,
+        ingredients: parseIngredients(r.ingredients),
         isAvailable: Boolean(r.isAvailable),
         isArchived: Boolean(r.isArchived),
       },
@@ -131,6 +147,10 @@ export async function createOrder(
   const orderItemRows = body.lines.map((line) => {
     const item = canonicalById.get(line.menuItemId)!;
     const lineTotal = item.priceMinor * line.quantity;
+    // Only keep exclusions that actually match an ingredient of this dish
+    // (case-insensitive), so the kitchen never sees phantom requests.
+    const requested = new Set(line.excludedIngredients?.map((e) => e.trim().toLowerCase()) ?? []);
+    const excludedIngredients = item.ingredients.filter((i) => requested.has(i.toLowerCase()));
     return {
       id: newId("oi"),
       menuItemId: item.id,
@@ -138,11 +158,16 @@ export async function createOrder(
       unitPriceMinor: item.priceMinor,
       quantity: line.quantity,
       lineTotalMinor: lineTotal,
+      excludedIngredients,
     };
   });
 
   const subtotalMinor = orderItemRows.reduce((sum, r) => sum + r.lineTotalMinor, 0);
-  const deliveryFeeMinor = body.fulfillmentMethod === "delivery" ? DELIVERY_FEE_MINOR : 0;
+  // Fee is decided by which village area the pin falls in (server-authoritative).
+  const deliveryFeeMinor =
+    body.fulfillmentMethod === "delivery" && body.deliveryLocation
+      ? resolveDeliveryZone(body.deliveryLocation.latitude, body.deliveryLocation.longitude).feeMinor
+      : 0;
   const totalMinor = subtotalMinor + deliveryFeeMinor;
 
   // 5. Persist order header + line items + creation event atomically via D1 batch.
@@ -176,9 +201,9 @@ export async function createOrder(
     ),
     ...orderItemRows.map((r) =>
       env.DB.prepare(
-        `INSERT INTO order_items (id, order_id, menu_item_id, item_name_snapshot, unit_price_minor, quantity, line_total_minor)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).bind(r.id, orderId, r.menuItemId, r.name, r.unitPriceMinor, r.quantity, r.lineTotalMinor)
+        `INSERT INTO order_items (id, order_id, menu_item_id, item_name_snapshot, unit_price_minor, quantity, line_total_minor, excluded_ingredients)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(r.id, orderId, r.menuItemId, r.name, r.unitPriceMinor, r.quantity, r.lineTotalMinor, JSON.stringify(r.excludedIngredients))
     ),
     env.DB.prepare(
       `INSERT INTO order_events (id, order_id, event_type, from_status, to_status, actor, created_at)

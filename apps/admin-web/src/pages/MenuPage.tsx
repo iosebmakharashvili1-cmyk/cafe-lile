@@ -260,7 +260,8 @@ function QuickAddItem({
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [ingredientsText, setIngredientsText] = useState("");
+  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [ingredientInput, setIngredientInput] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -268,12 +269,21 @@ function QuickAddItem({
   const priceMinor = Math.round(parseFloat(price || "0") * 100);
   const canSubmit = name.trim().length > 0 && priceMinor > 0 && !isUploading;
 
+  function addIngredient() {
+    const value = ingredientInput.trim();
+    if (!value) return;
+    setIngredients((prev) =>
+      prev.some((i) => i.toLowerCase() === value.toLowerCase()) ? prev : [...prev, value]
+    );
+    setIngredientInput("");
+  }
+
+  function removeIngredient(value: string) {
+    setIngredients((prev) => prev.filter((i) => i !== value));
+  }
+
   function submit() {
     if (!canSubmit) return;
-    const ingredients = ingredientsText
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
     onSubmit({
       name: name.trim(),
       priceMinor,
@@ -349,16 +359,61 @@ function QuickAddItem({
             placeholder="Description (optional)"
             style={inputStyle}
           />
-          <input
-            value={ingredientsText}
-            onChange={(e) => setIngredientsText(e.target.value)}
-            placeholder="Ingredients, comma separated (e.g. tomato, mozzarella, basil)"
-            style={inputStyle}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") submit();
-              if (e.key === "Escape") onCancel();
-            }}
-          />
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              value={ingredientInput}
+              onChange={(e) => setIngredientInput(e.target.value)}
+              placeholder="Add an ingredient (e.g. tomato)"
+              style={{ ...inputStyle, flex: 1 }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addIngredient();
+                }
+                if (e.key === "Escape") onCancel();
+              }}
+            />
+            <button onClick={addIngredient} disabled={!ingredientInput.trim()} style={secondaryButtonStyle}>
+              + Add ingredient
+            </button>
+          </div>
+          {ingredients.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {ingredients.map((ing) => (
+                <span
+                  key={ing}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    fontSize: 12.5,
+                    background: "var(--color-surface)",
+                    border: "1px solid var(--color-yellow-deep)",
+                    color: "var(--color-ink)",
+                    padding: "4px 10px",
+                    borderRadius: "999px",
+                  }}
+                >
+                  {ing}
+                  <button
+                    onClick={() => removeIngredient(ing)}
+                    aria-label={`Remove ${ing}`}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      color: "var(--color-cancelled)",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      padding: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
