@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { motion } from "motion/react";
 import type { MenuCategory, MenuItem } from "@cafe-lile/contracts";
 import { formatPrice } from "../lib/format";
@@ -7,21 +8,21 @@ interface MenuListProps {
   items: MenuItem[];
   currencyCode: string;
   quantitiesByItemId: Map<string, number>;
-  onAdd: (itemId: string) => void;
-  onDecrement: (itemId: string) => void;
+  onItemTap: (item: MenuItem) => void;
+  categoryRefs: React.MutableRefObject<Map<string, HTMLElement>>;
 }
 
 const listVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
+  visible: { transition: { staggerChildren: 0.035 } },
 };
 
 const rowVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-export function MenuList({ categories, items, currencyCode, quantitiesByItemId, onAdd, onDecrement }: MenuListProps) {
+export function MenuList({ categories, items, currencyCode, quantitiesByItemId, onItemTap, categoryRefs }: MenuListProps) {
   const itemsByCategory = new Map<string, MenuItem[]>();
   for (const item of items) {
     const list = itemsByCategory.get(item.categoryId) ?? [];
@@ -34,105 +35,115 @@ export function MenuList({ categories, items, currencyCode, quantitiesByItemId, 
       initial="hidden"
       animate="visible"
       variants={listVariants}
-      style={{ display: "flex", flexDirection: "column", gap: 32 }}
+      style={{ display: "flex", flexDirection: "column", gap: 36 }}
     >
       {categories.map((category) => {
         const categoryItems = itemsByCategory.get(category.id) ?? [];
         if (categoryItems.length === 0) return null;
 
         return (
-          <section key={category.id} id={`category-${category.id}`}>
-            <h2 style={{ fontSize: 22, marginBottom: 12, color: "var(--color-ink)" }}>{category.name}</h2>
+          <section
+            key={category.id}
+            ref={(el) => {
+              if (el) categoryRefs.current.set(category.id, el);
+            }}
+            style={{ scrollMarginTop: 64 }}
+          >
+            <h2 style={{ fontSize: 21, marginBottom: 14, padding: "0 20px" }}>{category.name}</h2>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {categoryItems.map((item) => {
                 const qty = quantitiesByItemId.get(item.id) ?? 0;
                 return (
-                  <motion.div
+                  <motion.button
                     key={item.id}
                     variants={rowVariants}
+                    onClick={() => onItemTap(item)}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 16,
-                      padding: "16px 4px",
+                      gap: 14,
+                      padding: "14px 20px",
                       borderBottom: "1px solid var(--color-line)",
+                      border: "none",
+                      borderBottomWidth: 1,
+                      borderBottomStyle: "solid",
+                      borderBottomColor: "var(--color-line)",
+                      background: "transparent",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      width: "100%",
+                      position: "relative",
                     }}
                   >
-                    {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt=""
-                        style={{
-                          width: 64,
-                          height: 64,
-                          objectFit: "cover",
-                          borderRadius: "var(--radius-md)",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 15.5 }}>{item.name}</div>
+                      <div style={{ fontWeight: 600, fontSize: 15 }}>{item.name}</div>
                       {item.description && (
                         <div
                           style={{
                             color: "var(--color-ink-soft)",
-                            fontSize: 13.5,
+                            fontSize: 13,
                             marginTop: 3,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
                           }}
                         >
                           {item.description}
                         </div>
                       )}
-                      <div style={{ fontSize: 14, marginTop: 4, color: "var(--color-yellow-deep)", fontWeight: 600 }}>
+                      <div style={{ fontSize: 14, marginTop: 6, color: "var(--color-yellow-deep)", fontWeight: 600 }}>
                         {formatPrice(item.priceMinor, currencyCode)}
                       </div>
                     </div>
 
-                    {qty === 0 ? (
-                      <motion.button
-                        whileTap={{ scale: 0.94 }}
-                        onClick={() => onAdd(item.id)}
-                        style={{
-                          flexShrink: 0,
-                          background: "var(--color-yellow)",
-                          color: "var(--color-ink)",
-                          border: "none",
-                          borderRadius: "var(--radius-sm)",
-                          padding: "9px 18px",
-                          fontWeight: 600,
-                          fontSize: 13.5,
-                          cursor: "pointer",
-                        }}
-                        aria-label={`Add ${item.name} to cart`}
-                      >
-                        Add
-                      </motion.button>
-                    ) : (
-                      <div
-                        style={{
-                          flexShrink: 0,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          background: "var(--color-yellow-tint)",
-                          borderRadius: "var(--radius-sm)",
-                          padding: "4px 6px",
-                        }}
-                      >
-                        <StepperButton label={`Remove one ${item.name}`} onClick={() => onDecrement(item.id)}>
-                          −
-                        </StepperButton>
-                        <span style={{ fontWeight: 600, minWidth: 14, textAlign: "center" }}>{qty}</span>
-                        <StepperButton label={`Add one more ${item.name}`} onClick={() => onAdd(item.id)}>
-                          +
-                        </StepperButton>
-                      </div>
-                    )}
-                  </motion.div>
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt=""
+                          style={{
+                            width: 84,
+                            height: 84,
+                            objectFit: "cover",
+                            borderRadius: "var(--radius-md)",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: 84,
+                            height: 84,
+                            borderRadius: "var(--radius-md)",
+                            background: "var(--color-yellow-tint)",
+                          }}
+                        />
+                      )}
+                      {qty > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            bottom: -6,
+                            right: -6,
+                            background: "var(--color-yellow)",
+                            color: "var(--color-ink)",
+                            borderRadius: "50%",
+                            width: 26,
+                            height: 26,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            border: "2px solid var(--color-bg)",
+                          }}
+                        >
+                          {qty}
+                        </div>
+                      )}
+                    </div>
+                  </motion.button>
                 );
               })}
             </div>
@@ -140,40 +151,5 @@ export function MenuList({ categories, items, currencyCode, quantitiesByItemId, 
         );
       })}
     </motion.div>
-  );
-}
-
-function StepperButton({
-  children,
-  onClick,
-  label,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <motion.button
-      whileTap={{ scale: 0.85 }}
-      onClick={onClick}
-      aria-label={label}
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-        border: "none",
-        background: "var(--color-surface)",
-        color: "var(--color-ink)",
-        fontWeight: 700,
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 14,
-        lineHeight: 1,
-      }}
-    >
-      {children}
-    </motion.button>
   );
 }

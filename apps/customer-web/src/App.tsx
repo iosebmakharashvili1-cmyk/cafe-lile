@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import type { PublicMenuResponse, CreateOrderResponse, FulfillmentMethod } from "@cafe-lile/contracts";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { PublicMenuResponse, CreateOrderResponse, FulfillmentMethod, MenuItem } from "@cafe-lile/contracts";
 import { fetchMenu, submitOrder, ApiError } from "./lib/api";
 import { useCart, getOrCreateIdempotencyKey, clearIdempotencyKey } from "./hooks/useCart";
-import { Header } from "./components/Header";
+import { HeroBanner } from "./components/HeroBanner";
+import { CategoryNav } from "./components/CategoryNav";
 import { MenuList } from "./components/MenuList";
 import { MenuSkeleton } from "./components/MenuSkeleton";
+import { ItemDetailModal } from "./components/ItemDetailModal";
 import { CartDrawer } from "./components/CartDrawer";
+import { CartBar } from "./components/CartBar";
 import { CheckoutForm } from "./components/CheckoutForm";
 import { Confirmation } from "./components/Confirmation";
 
@@ -16,13 +19,20 @@ export default function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>("menu");
   const [isCartOpen, setCartOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<CreateOrderResponse["order"] | null>(null);
 
+  const categoryRefs = useRef<Map<string, HTMLElement>>(new Map());
+
   useEffect(() => {
     fetchMenu()
-      .then(setMenu)
+      .then((res) => {
+        setMenu(res);
+        if (res.categories.length > 0) setActiveCategoryId(res.categories[0].id);
+      })
       .catch(() => setLoadError("Couldn't load the menu. Check your connection and try again."));
   }, []);
 
@@ -38,6 +48,11 @@ export default function App() {
     for (const line of cart.lines) map.set(line.menuItemId, line.quantity);
     return map;
   }, [cart.lines]);
+
+  function handleCategorySelect(categoryId: string) {
+    setActiveCategoryId(categoryId);
+    categoryRefs.current.get(categoryId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   async function handleCheckoutSubmit(data: {
     customerName: string;
@@ -64,7 +79,6 @@ export default function App() {
       if (err instanceof ApiError) {
         setSubmitError(err.message);
         if (err.code === "item_unavailable" || err.code === "unknown_item") {
-          // Refresh menu so stale availability doesn't cause repeat failures.
           fetchMenu().then(setMenu).catch(() => {});
         }
       } else {
@@ -123,13 +137,20 @@ export default function App() {
 
   return (
     <>
-      <Header
+      <HeroBanner
         restaurantName={menu?.settings.restaurantName ?? "Cafe Lile"}
         acceptingOrders={menu?.settings.acceptingOrders ?? true}
-        itemCount={cart.itemCount}
-        onCartClick={() => setCartOpen(true)}
       />
-      <main style={{ maxWidth: 640, margin: "0 auto", padding: "20px 20px 100px" }}>
+
+      {menu && (
+        <CategoryNav
+          categories={menu.categories}
+          activeCategoryId={activeCategoryId}
+          onSelect={handleCategorySelect}
+        />
+      )}
+
+      <main style={{ maxWidth: 640, margin: "0 auto", padding: "20px 0 120px" }}>
         {!menu ? (
           <MenuSkeleton />
         ) : (
@@ -138,11 +159,28 @@ export default function App() {
             items={menu.items}
             currencyCode={menu.settings.currencyCode}
             quantitiesByItemId={quantitiesByItemId}
-            onAdd={cart.addItem}
-            onDecrement={cart.decrementItem}
+            onItemTap={setActiveItem}
+            categoryRefs={categoryRefs}
           />
         )}
       </main>
+
+      <ItemDetailModal
+        item={activeItem}
+        currencyCode={menu?.settings.currencyCode ?? "GEL"}
+        quantity={activeItem ? quantitiesByItemId.get(activeItem.id) ?? 0 : 0}
+        onClose={() => setActiveItem(null)}
+        onAdd={cart.addItem}
+        onDecrement={cart.decrementItem}
+      />
+
+      <CartBar
+        itemCount={cart.itemCount}
+        subtotalMinor={cart.subtotalMinor}
+        currencyCode={menu?.settings.currencyCode ?? "GEL"}
+        onOpenCart={() => setCartOpen(true)}
+      />
+
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setCartOpen(false)}
