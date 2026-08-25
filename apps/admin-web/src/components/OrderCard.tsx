@@ -112,7 +112,7 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
               </span>
               <span style={{ color: "var(--color-ink-soft)" }}>{formatPrice(item.lineTotalMinor, order.currencyCode)}</span>
             </div>
-            {item.excludedIngredients.length > 0 && (
+            {(item.excludedIngredients ?? []).length > 0 && (
               <div
                 style={{
                   fontSize: 12,
