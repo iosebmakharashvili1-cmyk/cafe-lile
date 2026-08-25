@@ -1,0 +1,97 @@
+import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+
+// TODO: replace with the cafe's real phone number before launch.
+const CONTACT_PHONE_DISPLAY = "+995 555 12 34 56";
+const CONTACT_PHONE_TEL = "+995555123456";
+const WHATSAPP_NUMBER = "995555123456"; // same digits, no "+" — used by wa.me
+
+/** Floating contact bubble: expands to call / WhatsApp options. */
+export function FloatingContact() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div data-print-hide style={{ position: "fixed", right: 16, bottom: 16, zIndex: 33 }}>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.16 }}
+            style={{
+              position: "absolute",
+              bottom: 52,
+              right: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              alignItems: "flex-end",
+            }}
+          >
+            <a
+              href={`tel:${CONTACT_PHONE_TEL}`}
+              className="pressable"
+              style={{
+                background: "var(--color-surface)",
+                color: "var(--color-ink)",
+                border: "1px solid var(--color-line)",
+                borderRadius: "999px",
+                padding: "9px 14px",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                boxShadow: "var(--shadow-card)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              📞 {CONTACT_PHONE_DISPLAY}
+            </a>
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              target="_blank"
+              rel="noreferrer"
+              className="pressable"
+              style={{
+                background: "var(--color-ready)",
+                color: "#fff",
+                borderRadius: "999px",
+                padding: "9px 14px",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                boxShadow: "var(--shadow-card)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              💬 WhatsApp us
+            </a>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={open ? "Close contact options" : "Contact us"}
+        className="pressable"
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: "50%",
+          border: "none",
+          background: "var(--color-yellow)",
+          color: "var(--color-ink)",
+          fontSize: 20,
+          cursor: "pointer",
+          boxShadow: "0 4px 20px rgba(33, 28, 18, 0.25)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {open ? "✕" : "💬"}
+      </button>
+    </div>
+  );
+}

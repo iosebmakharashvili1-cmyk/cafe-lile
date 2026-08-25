@@ -11,6 +11,7 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
   const [password, setPassword] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -82,13 +83,41 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
         />
 
         <label style={{ ...labelStyle, marginTop: 14 }}>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-          autoComplete="current-password"
-        />
+        <div style={{ position: "relative" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{ ...inputStyle, paddingRight: 44 }}
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+            title={showPassword ? "Hide password" : "Show password"}
+            style={{
+              position: "absolute",
+              right: 6,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 32,
+              height: 32,
+              borderRadius: "var(--radius-sm)",
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              fontSize: 15,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--color-ink-soft)",
+            }}
+          >
+            {showPassword ? "🙈" : "👁"}
+          </button>
+        </div>
 
         {error && (
           <div
@@ -122,7 +151,13 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
             cursor: isSubmitting || !username || !password ? "not-allowed" : "pointer",
           }}
         >
-          {isSubmitting ? "Signing in…" : "Sign in"}
+          {isSubmitting ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+              <span className="spinner" aria-hidden="true" /> Signing in…
+            </span>
+          ) : (
+            "Sign in"
+          )}
         </motion.button>
       </motion.form>
     </div>

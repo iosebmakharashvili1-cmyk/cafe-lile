@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import type { CreateOrderResponse } from "@cafe-lile/contracts";
 import { formatPrice } from "../lib/format";
+import { CopyButton } from "./CopyButton";
 
 interface ConfirmationProps {
   order: CreateOrderResponse["order"];
@@ -9,7 +10,7 @@ interface ConfirmationProps {
 
 export function Confirmation({ order, onDone }: ConfirmationProps) {
   return (
-    <div style={{ padding: "48px 20px", maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
+    <div className="print-receipt" style={{ padding: "48px 20px", maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -37,6 +38,7 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
       </p>
 
       <div
+        className="print-receipt-box"
         style={{
           background: "var(--color-yellow-tint)",
           borderRadius: "var(--radius-lg)",
@@ -48,6 +50,7 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
         <div style={{ fontSize: 32, fontFamily: "var(--font-display)", fontWeight: 700, letterSpacing: "0.02em" }}>
           {order.reference}
         </div>
+        <CopyButton value={order.reference} label="Copy reference" />
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(33,28,18,0.1)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
             <span>Total (cash on {order.fulfillmentMethod})</span>
@@ -62,21 +65,43 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
         </p>
       )}
 
-      <button
-        onClick={onDone}
-        style={{
-          border: "none",
-          background: "var(--color-yellow)",
-          color: "var(--color-ink)",
-          borderRadius: "var(--radius-sm)",
-          padding: "13px 28px",
-          fontWeight: 700,
-          fontSize: 14.5,
-          cursor: "pointer",
-        }}
+      <div
+        data-print-hide
+        style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center" }}
       >
-        Order again
-      </button>
+        <button
+          onClick={() => window.print()}
+          className="pressable"
+          style={{
+            border: "1.5px solid var(--color-line)",
+            background: "var(--color-surface)",
+            color: "var(--color-ink)",
+            borderRadius: "var(--radius-sm)",
+            padding: "13px 22px",
+            fontWeight: 700,
+            fontSize: 14.5,
+            cursor: "pointer",
+          }}
+        >
+          🖨 Print receipt
+        </button>
+        <button
+          onClick={onDone}
+          className="pressable"
+          style={{
+            border: "none",
+            background: "var(--color-yellow)",
+            color: "var(--color-ink)",
+            borderRadius: "var(--radius-sm)",
+            padding: "13px 28px",
+            fontWeight: 700,
+            fontSize: 14.5,
+            cursor: "pointer",
+          }}
+        >
+          Order again
+        </button>
+      </div>
     </div>
   );
 }

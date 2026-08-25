@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+
 interface NavBarProps {
   displayName: string;
   activeTab: "board" | "menu" | "settings";
@@ -5,67 +8,182 @@ interface NavBarProps {
   onLogout: () => void;
 }
 
+const TABS: { id: "board" | "menu" | "settings"; label: string }[] = [
+  { id: "board", label: "Orders" },
+  { id: "menu", label: "Menu" },
+  { id: "settings", label: "Settings" },
+];
+
 export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBarProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  function handleMobileTab(tab: "board" | "menu" | "settings") {
+    setMobileMenuOpen(false);
+    onTabChange(tab);
+  }
+
   return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-        background: "var(--color-bg)",
-        borderBottom: "1px solid var(--color-line)",
-        padding: "14px 24px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "var(--color-yellow)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            CL
+    <>
+      <header
+        className="admin-header"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          background: "var(--color-bg)",
+          borderBottom: "1px solid var(--color-line)",
+          padding: "14px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "var(--color-yellow)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+                fontSize: 13,
+              }}
+            >
+              CL
+            </div>
+            <h1 style={{ fontSize: 17 }}>Cafe Lile Admin</h1>
           </div>
-          <h1 style={{ fontSize: 17 }}>Cafe Lile Admin</h1>
+
+          {/* Desktop tabs */}
+          <nav className="nav-desktop-tabs" aria-label="Sections">
+            {TABS.map((tab) => (
+              <TabButton
+                key={tab.id}
+                label={tab.label}
+                active={activeTab === tab.id}
+                onClick={() => onTabChange(tab.id)}
+              />
+            ))}
+          </nav>
         </div>
 
-        <nav style={{ display: "flex", gap: 4 }}>
-          <TabButton label="Orders" active={activeTab === "board"} onClick={() => onTabChange("board")} />
-          <TabButton label="Menu" active={activeTab === "menu"} onClick={() => onTabChange("menu")} />
-          <TabButton label="Settings" active={activeTab === "settings"} onClick={() => onTabChange("settings")} />
-        </nav>
-      </div>
+        <div className="nav-desktop-user" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{ fontSize: 13.5, color: "var(--color-ink-soft)" }}>{displayName}</span>
+          <button
+            onClick={onLogout}
+            className="pressable"
+            style={{
+              border: "1.5px solid var(--color-line)",
+              background: "transparent",
+              borderRadius: "var(--radius-sm)",
+              padding: "7px 14px",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              color: "var(--color-ink)",
+            }}
+          >
+            Sign out
+          </button>
+        </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <span style={{ fontSize: 13.5, color: "var(--color-ink-soft)" }}>{displayName}</span>
+        {/* Mobile hamburger */}
         <button
-          onClick={onLogout}
+          className="nav-mobile-toggle"
+          onClick={() => setMobileMenuOpen((v) => !v)}
+          aria-expanded={mobileMenuOpen}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           style={{
+            display: "none",
+            width: 38,
+            height: 38,
+            borderRadius: "var(--radius-sm)",
             border: "1.5px solid var(--color-line)",
             background: "transparent",
-            borderRadius: "var(--radius-sm)",
-            padding: "7px 14px",
-            fontSize: 13,
-            fontWeight: 600,
             cursor: "pointer",
+            fontSize: 17,
             color: "var(--color-ink)",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          Sign out
+          {mobileMenuOpen ? "✕" : "☰"}
         </button>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile dropdown menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.nav
+            className="nav-mobile-sheet"
+            aria-label="Sections"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.16 }}
+            style={{
+              position: "fixed",
+              top: 61,
+              left: 0,
+              right: 0,
+              zIndex: 19,
+              background: "var(--color-surface)",
+              borderBottom: "1px solid var(--color-line)",
+              boxShadow: "var(--shadow-card)",
+              padding: "8px 16px 12px",
+              display: "none",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleMobileTab(tab.id)}
+                className="menu-row"
+                style={{
+                  textAlign: "left",
+                  border: "none",
+                  background: activeTab === tab.id ? "var(--color-yellow-tint)" : "transparent",
+                  color: "var(--color-ink)",
+                  borderRadius: "var(--radius-sm)",
+                  padding: "12px 14px",
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onLogout();
+              }}
+              className="menu-row"
+              style={{
+                textAlign: "left",
+                border: "none",
+                background: "transparent",
+                color: "var(--color-cancelled)",
+                borderRadius: "var(--radius-sm)",
+                padding: "12px 14px",
+                fontSize: 14.5,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Sign out ({displayName})
+            </button>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -73,6 +191,7 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
   return (
     <button
       onClick={onClick}
+      className="pressable"
       style={{
         border: "none",
         background: active ? "var(--color-yellow-tint)" : "transparent",

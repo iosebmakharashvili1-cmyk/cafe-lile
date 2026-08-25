@@ -34,8 +34,12 @@ export function HeroBanner({ restaurantName, acceptingOrders }: HeroBannerProps)
     <div
       style={{
         position: "relative",
-        height: 200,
-        background: "linear-gradient(135deg, #F5B700 0%, #E8A700 55%, #C98A00 100%)",
+        height: 220,
+        background: `
+          radial-gradient(ellipse 90% 120% at 85% -10%, rgba(255, 244, 204, 0.9), transparent 55%),
+          radial-gradient(ellipse 70% 100% at 10% 110%, rgba(169, 116, 11, 0.45), transparent 60%),
+          linear-gradient(135deg, #F5B700 0%, #E8A700 55%, #C98A00 100%)
+        `,
         display: "flex",
         alignItems: "flex-end",
         overflow: "hidden",
@@ -52,16 +56,28 @@ export function HeroBanner({ restaurantName, acceptingOrders }: HeroBannerProps)
           backgroundSize: "60px 60px",
         }}
       />
-      <div style={{ position: "relative", padding: "0 20px 24px", width: "100%" }}>
+      {/* Soft top-edge light sweep for depth */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to bottom, rgba(255,255,255,0.22), transparent 40%)",
+          pointerEvents: "none",
+        }}
+      />
+      <div style={{ position: "relative", padding: "0 20px 26px", width: "100%" }}>
         <h1
           ref={titleRef}
           style={{
-            fontSize: 34,
+            fontSize: 36,
             fontFamily: "var(--font-display)",
             fontWeight: 700,
             color: "var(--color-ink)",
             margin: 0,
             opacity: 0,
+            textShadow: "0 1px 0 rgba(255,255,255,0.25)",
+            letterSpacing: "-0.02em",
           }}
         >
           {restaurantName}
@@ -83,6 +99,7 @@ export function HeroBanner({ restaurantName, acceptingOrders }: HeroBannerProps)
               borderRadius: "50%",
               background: acceptingOrders ? "var(--color-ready)" : "var(--color-cancelled)",
               flexShrink: 0,
+              boxShadow: acceptingOrders ? "0 0 0 3px rgba(77, 124, 95, 0.25)" : "none",
             }}
           />
           <span style={{ fontSize: 14, fontWeight: 600, color: "rgba(33,28,18,0.75)" }}>

@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PublicMenuResponse, CreateOrderResponse, FulfillmentMethod, MenuItem } from "@cafe-lile/contracts";
 import { fetchMenu, submitOrder, ApiError } from "./lib/api";
+import { captureAttribution, attributionNoteSuffix } from "./lib/utm";
+import { ScrollProgress } from "./components/ScrollProgress";
+import { BackToTop } from "./components/BackToTop";
+import { CookieBanner } from "./components/CookieBanner";
+import { FloatingContact } from "./components/FloatingContact";
+import { FaqSection } from "./components/FaqSection";
 import { useCart, getOrCreateIdempotencyKey, clearIdempotencyKey } from "./hooks/useCart";
 import { HeroBanner } from "./components/HeroBanner";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { CategoryNav } from "./components/CategoryNav";
 import { MenuList } from "./components/MenuList";
 import { MenuSkeleton } from "./components/MenuSkeleton";
@@ -26,11 +33,18 @@ export default function App() {
   const [confirmedOrder, setConfirmedOrder] = useState<CreateOrderResponse["order"] | null>(null);
 
   const categoryRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const [menuLoadedAt, setMenuLoadedAt] = useState<Date | null>(null);
+
+  // Remember marketing attribution (utm_*) for this session.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
 
   useEffect(() => {
     fetchMenu()
       .then((res) => {
         setMenu(res);
+        setMenuLoadedAt(new Date());
         if (res.categories.length > 0) setActiveCategoryId(res.categories[0].id);
       })
       .catch(() => setLoadError("Couldn't load the menu. Check your connection and try again."));
@@ -68,9 +82,14 @@ export default function App() {
     setSubmitError(null);
     try {
       const idempotencyKey = getOrCreateIdempotencyKey();
+      // Append marketing attribution to the note so the cafe sees where orders come from.
+      const baseNote = data.customerNote ?? "";
+      const suffix = attributionNoteSuffix(baseNote.length);
+      const customerNote = suffix ? `${baseNote}${baseNote ? " " : ""}${suffix}` : baseNote || undefined;
       const result = await submitOrder(
         {
           ...data,
+          customerNote,
           lines: cart.lines,
         },
         idempotencyKey
@@ -157,16 +176,31 @@ export default function App() {
         {!menu ? (
           <MenuSkeleton />
         ) : (
-          <MenuList
-            categories={menu.categories}
-            items={menu.items}
-            currencyCode={menu.settings.currencyCode}
-            quantitiesByItemId={quantitiesByItemId}
-            onItemTap={setActiveItem}
-            categoryRefs={categoryRefs}
-          />
+          <>
+            <MenuList
+              categories={menu.categories}
+              items={menu.items}
+              currencyCode={menu.settings.currencyCode}
+              quantitiesByItemId={quantitiesByItemId}
+              onItemTap={setActiveItem}
+              categoryRefs={categoryRefs}
+            />
+            <div style={{ height: 40 }} />
+            <FaqSection prepMinutes={menu.settings.defaultPrepMinutes} />
+            <footer
+              data-print-hide
+              style={{ textAlign: "center", padding: "28px 20px 8px", fontSize: 12.5, color: "var(--color-ink-soft)" }}
+            >
+              Menu updated {menuLoadedAt?.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+            </footer>
+          </>
         )}
       </main>
+
+      <ScrollProgress />
+      <BackToTop />
+      <FloatingContact />
+      <CookieBanner />
 
       <ItemDetailModal
         item={activeItem}
