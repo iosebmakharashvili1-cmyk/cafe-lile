@@ -66,16 +66,6 @@ export async function postAdminLogin(request: Request, env: Env): Promise<Respon
   const candidateSalt = user?.passwordSalt ?? "AAAAAAAAAAAAAAAAAAAAAA";
   const candidateHash = await derivePasswordHash(parsed.data.password, candidateSalt);
 
-  // TEMP DEBUG — remove after diagnosing login mismatch
-  console.log("DEBUG login attempt:", {
-    username: parsed.data.username,
-    userFound: Boolean(user),
-    isActive: user?.isActive,
-    storedSalt: user?.passwordSalt,
-    storedHash: user?.passwordHash,
-    candidateHash,
-  });
-
   const ok = user && user.isActive && timingSafeEqual(candidateHash, user.passwordHash);
   if (!ok) {
     throw new ApiHttpError(401, "invalid_credentials", "Incorrect username or password.");
