@@ -81,6 +81,123 @@ img {
   }
 }
 
+/* ---------- Dark theme ----------
+   Applied by setting data-theme="dark" on <html> (see lib/theme.ts).
+   Only overrides what actually changes; the yellow accent stays the brand anchor. */
+html[data-theme="dark"] {
+  --color-bg: #17130e;
+  --color-surface: #221c14;
+  --color-ink: #f3ede0;
+  --color-ink-soft: #a89d89;
+  --color-line: #373024;
+
+  --color-yellow-tint: #33290f;
+  --color-yellow-deep: #ffc94d;
+  --color-yellow-press: #ffd977;
+
+  --color-ready: #6faf87;
+  --color-ready-tint: #1e2b23;
+  --color-cancelled: #e08a76;
+  --color-cancelled-tint: #33201b;
+
+  --color-hover: rgba(245, 183, 0, 0.07);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-drawer: -8px 0 32px rgba(0, 0, 0, 0.5);
+}
+
+:root {
+  --color-hover: rgba(245, 183, 0, 0.09);
+}
+
+/* ---------- Interactive states ---------- */
+.menu-row,
+.pressable,
+.icon-btn {
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    filter 160ms ease;
+}
+
+/* Menu list rows get a soft wash + nudge on hover/focus */
+.menu-row:hover,
+.menu-row:focus-visible {
+  background: var(--color-hover);
+}
+.menu-row:hover .menu-row-name {
+  color: var(--color-yellow-deep);
+}
+.menu-row-name {
+  transition: color 160ms ease;
+}
+
+/* Generic pressable button lift */
+.pressable:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+  filter: brightness(1.03);
+}
+.pressable:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+.pressable:disabled {
+  cursor: not-allowed;
+}
+
+/* Quiet icon buttons (close ✕, toggles, steppers) */
+.icon-btn:hover {
+  background: var(--color-hover);
+}
+
+/* ---------- Spinner (inline button loading state) ---------- */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -2px;
+}
+
+/* ---------- Print stylesheet ----------
+   Printing is meant for the order receipt: everything marked
+   [data-print-hide] disappears and the page resets to plain paper. */
+@media print {
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    height: auto;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .print-receipt {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  .print-receipt * {
+    color: #000 !important;
+  }
+  .print-receipt-box {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+  }
+}
+
 /* ---------- Skeleton shimmer ---------- */
 @keyframes shimmer {
   0% {

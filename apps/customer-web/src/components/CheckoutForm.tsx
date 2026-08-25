@@ -34,6 +34,7 @@ export function CheckoutForm({
   const [method, setMethod] = useState<FulfillmentMethod>("pickup");
   const [address, setAddress] = useState("");
   const [pin, setPin] = useState<PickedLocation | null>(null);
+  const [touched, setTouched] = useState<{ name: boolean; phone: boolean }>({ name: false, phone: false });
 
   // Mirror of the server's zone resolution — the API recomputes this on submit,
   // so the customer always sees the exact fee they will be charged.
@@ -46,6 +47,10 @@ export function CheckoutForm({
     name.trim().length > 0 &&
     phone.trim().length >= 4 &&
     (method === "pickup" || (address.trim().length > 0 && pin !== null));
+
+  // Inline field errors appear only once a field has been touched.
+  const nameError = touched.name && name.trim().length === 0 ? "Please tell us your name." : null;
+  const phoneError = touched.phone && phone.trim().length < 4 ? "Enter a phone number we can reach you on." : null;
 
   return (
     <div style={{ padding: "24px 20px", maxWidth: 480, margin: "0 auto" }}>
@@ -63,24 +68,28 @@ export function CheckoutForm({
         <MethodTab label="Delivery" active={method === "delivery"} onClick={() => setMethod("delivery")} />
       </div>
 
-      <Field label="Your name">
+      <Field label="Your name" error={nameError}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onBlur={() => setTouched((t) => ({ ...t, name: true }))}
           placeholder="Full name"
           maxLength={80}
-          style={inputStyle}
+          aria-invalid={nameError ? true : undefined}
+          style={{ ...inputStyle, ...(nameError ? inputErrorStyle : null) }}
         />
       </Field>
 
-      <Field label="Phone number">
+      <Field label="Phone number" error={phoneError}>
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
           placeholder="Required — for order updates"
           maxLength={30}
           style={inputStyle}
           type="tel"
+          aria-invalid={phoneError ? true : undefined}
         />
       </Field>
 
@@ -166,6 +175,7 @@ export function CheckoutForm({
 
       {errorMessage && (
         <div
+          role="alert"
           style={{
             background: "var(--color-cancelled-tint)",
             color: "var(--color-cancelled)",
@@ -173,6 +183,7 @@ export function CheckoutForm({
             padding: "12px 14px",
             fontSize: 13.5,
             marginBottom: 16,
+            fontWeight: 600,
           }}
         >
           {errorMessage}
@@ -182,6 +193,8 @@ export function CheckoutForm({
       <motion.button
         whileTap={{ scale: 0.98 }}
         disabled={!canSubmit || isSubmitting}
+        className="pressable"
+        aria-live="polite"
         onClick={() =>
           onSubmit({
             customerName: name.trim(),
@@ -206,7 +219,13 @@ export function CheckoutForm({
           cursor: !canSubmit || isSubmitting ? "not-allowed" : "pointer",
         }}
       >
-        {isSubmitting ? "Placing order…" : "Place order"}
+        {isSubmitting ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+            <span className="spinner" aria-hidden="true" /> Placing order…
+          </span>
+        ) : (
+          "Place order"
+        )}
       </motion.button>
     </div>
   );
@@ -233,16 +252,25 @@ function MethodTab({ label, active, onClick }: { label: string; active: boolean;
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string | null; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6, color: "var(--color-ink-soft)" }}>
         {label}
       </label>
       {children}
+      {error && (
+        <div role="alert" style={{ marginTop: 5, fontSize: 12.5, fontWeight: 600, color: "var(--color-cancelled)" }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }
+
+const inputErrorStyle: React.CSSProperties = {
+  borderColor: "var(--color-cancelled)",
+};
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
