@@ -56,6 +56,8 @@ export interface AdminOrderItem {
   unitPriceMinor: number;
   quantity: number;
   lineTotalMinor: number;
+  /** Ingredients the customer asked to leave out of this dish. */
+  excludedIngredients: string[];
 }
 
 export interface AdminOrderRow {

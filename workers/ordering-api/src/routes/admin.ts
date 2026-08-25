@@ -148,7 +148,8 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
   const placeholders = orderIds.map(() => "?").join(",");
   const { results: items } = await env.DB.prepare(
     `SELECT id, order_id as orderId, menu_item_id as menuItemId, item_name_snapshot as itemNameSnapshot,
-            unit_price_minor as unitPriceMinor, quantity, line_total_minor as lineTotalMinor
+            unit_price_minor as unitPriceMinor, quantity, line_total_minor as lineTotalMinor,
+            excluded_ingredients as excludedIngredients
      FROM order_items WHERE order_id IN (${placeholders})`
   )
     .bind(...orderIds)
@@ -160,6 +161,7 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
       unitPriceMinor: number;
       quantity: number;
       lineTotalMinor: number;
+      excludedIngredients: string;
     }>();
 
   const itemsByOrder = new Map<string, typeof items>();
@@ -194,6 +196,7 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
         unitPriceMinor: i.unitPriceMinor,
         quantity: i.quantity,
         lineTotalMinor: i.lineTotalMinor,
+        excludedIngredients: parseIngredients(i.excludedIngredients ?? "[]"),
       })),
     })),
   });

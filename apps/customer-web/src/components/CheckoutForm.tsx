@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import type { FulfillmentMethod } from "@cafe-lile/contracts";
-import { DELIVERY_FEE_MINOR } from "@cafe-lile/contracts";
+import { resolveDeliveryZone } from "@cafe-lile/contracts";
 import { formatPrice } from "../lib/format";
 import { DeliveryMapPicker, type PickedLocation } from "./DeliveryMapPicker";
 
@@ -35,7 +35,11 @@ export function CheckoutForm({
   const [address, setAddress] = useState("");
   const [pin, setPin] = useState<PickedLocation | null>(null);
 
-  const deliveryFeeMinor = method === "delivery" ? DELIVERY_FEE_MINOR : 0;
+  // Mirror of the server's zone resolution — the API recomputes this on submit,
+  // so the customer always sees the exact fee they will be charged.
+  const zoneInfo =
+    method === "delivery" && pin ? resolveDeliveryZone(pin.latitude, pin.longitude) : null;
+  const deliveryFeeMinor = method === "delivery" && zoneInfo ? zoneInfo.feeMinor : 0;
   const totalMinor = subtotalMinor + deliveryFeeMinor;
 
   const canSubmit =
@@ -93,6 +97,20 @@ export function CheckoutForm({
           </Field>
           <Field label="Pin your location">
             <DeliveryMapPicker value={pin} onChange={setPin} />
+            {zoneInfo && (
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: zoneInfo.zone ? "var(--color-yellow-deep)" : "var(--color-cancelled)",
+                }}
+              >
+                {zoneInfo.zone
+                  ? `Delivering to ${zoneInfo.zone.name} — ${formatPrice(zoneInfo.feeMinor, currencyCode)}`
+                  : `Outside our usual villages — ${formatPrice(zoneInfo.feeMinor, currencyCode)} (we'll confirm by phone)`}
+              </div>
+            )}
           </Field>
         </>
       )}
@@ -123,8 +141,8 @@ export function CheckoutForm({
         </div>
         {method === "delivery" && (
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
-            <span>Delivery fee</span>
-            <span>{formatPrice(deliveryFeeMinor, currencyCode)}</span>
+            <span>Delivery fee{zoneInfo?.zone ? ` (${zoneInfo.zone.name})` : ""}</span>
+            <span>{zoneInfo ? formatPrice(deliveryFeeMinor, currencyCode) : "pick a pin"}</span>
           </div>
         )}
         <div

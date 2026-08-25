@@ -43,9 +43,12 @@ export default function App() {
   }, [menu]);
 
   const cart = useCart(menuItemsById);
+  // Total per dish across all exclusion variants, for the menu badge.
   const quantitiesByItemId = useMemo(() => {
     const map = new Map<string, number>();
-    for (const line of cart.lines) map.set(line.menuItemId, line.quantity);
+    for (const line of cart.lines) {
+      map.set(line.menuItemId, (map.get(line.menuItemId) ?? 0) + line.quantity);
+    }
     return map;
   }, [cart.lines]);
 
@@ -168,7 +171,7 @@ export default function App() {
       <ItemDetailModal
         item={activeItem}
         currencyCode={menu?.settings.currencyCode ?? "GEL"}
-        quantity={activeItem ? quantitiesByItemId.get(activeItem.id) ?? 0 : 0}
+        getQuantity={cart.getQuantity}
         onClose={() => setActiveItem(null)}
         onAdd={cart.addItem}
         onDecrement={cart.decrementItem}
