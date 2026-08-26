@@ -2,9 +2,9 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 // TODO: replace with the cafe's real phone number before launch.
-const CONTACT_PHONE_DISPLAY = "+995 555 12 34 56";
-const CONTACT_PHONE_TEL = "+995555123456";
-const WHATSAPP_NUMBER = "995555123456"; // same digits, no "+" — used by wa.me
+const CONTACT_PHONE_DISPLAY = "+995 568 00 40 40";
+const CONTACT_PHONE_TEL = "+995568004040";
+const WHATSAPP_NUMBER = "995568004040"; // same digits, no "+" — used by wa.me
 
 interface FloatingContactProps {
   liftedForCartBar?: boolean;
