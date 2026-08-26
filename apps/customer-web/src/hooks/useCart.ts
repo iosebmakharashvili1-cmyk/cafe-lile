@@ -3,7 +3,17 @@ import type { MenuItem } from "@cafe-lile/contracts";
 
 export interface CartLine {
   menuItemId: string;
+  /** Ingredients the customer asked to leave out of this dish. */
+  excludedIngredients: string[];
   quantity: number;
+}
+
+/**
+ * Two lines with the same dish but different exclusions are different cart
+ * entries ("Khinkali without cilantro" vs plain Khinkali).
+ */
+export function cartLineKey(menuItemId: string, excludedIngredients: string[]): string {
+  return `${menuItemId}::${[...excludedIngredients].sort().join("|")}`;
 }
 
 // Cart lives in memory only (React state), not localStorage/sessionStorage.
@@ -13,28 +23,29 @@ export interface CartLine {
 export function useCart(menuItemsById: Map<string, MenuItem>) {
   const [lines, setLines] = useState<CartLine[]>([]);
 
-  const addItem = useCallback((menuItemId: string) => {
+  const addItem = useCallback((menuItemId: string, excludedIngredients: string[] = []) => {
+    const key = cartLineKey(menuItemId, excludedIngredients);
     setLines((prev) => {
-      const existing = prev.find((l) => l.menuItemId === menuItemId);
+      const existing = prev.find((l) => cartLineKey(l.menuItemId, l.excludedIngredients) === key);
       if (existing) {
         return prev.map((l) =>
-          l.menuItemId === menuItemId ? { ...l, quantity: Math.min(20, l.quantity + 1) } : l
+          l === existing ? { ...l, quantity: Math.min(20, l.quantity + 1) } : l
         );
       }
-      return [...prev, { menuItemId, quantity: 1 }];
+      return [...prev, { menuItemId, excludedIngredients, quantity: 1 }];
     });
   }, []);
 
-  const decrementItem = useCallback((menuItemId: string) => {
+  const decrementItem = useCallback((menuItemId: string, excludedIngredients: string[] = []) => {
+    const key = cartLineKey(menuItemId, excludedIngredients);
     setLines((prev) => {
-      const existing = prev.find((l) => l.menuItemId === menuItemId);
-      if (!existing) return prev;
-      if (existing.quantity <= 1) {
-        return prev.filter((l) => l.menuItemId !== menuItemId);
+      const index = prev.findIndex((l) => cartLineKey(l.menuItemId, l.excludedIngredients) === key);
+      if (index === -1) return prev;
+      const line = prev[index];
+      if (line.quantity <= 1) {
+        return prev.filter((_, i) => i !== index);
       }
-      return prev.map((l) =>
-        l.menuItemId === menuItemId ? { ...l, quantity: l.quantity - 1 } : l
-      );
+      return prev.map((l, i) => (i === index ? { ...l, quantity: l.quantity - 1 } : l));
     });
   }, []);
 
@@ -45,6 +56,14 @@ export function useCart(menuItemsById: Map<string, MenuItem>) {
   const clearCart = useCallback(() => {
     setLines([]);
   }, []);
+
+  const getQuantity = useCallback(
+    (menuItemId: string, excludedIngredients: string[] = []) => {
+      const key = cartLineKey(menuItemId, excludedIngredients);
+      return lines.find((l) => cartLineKey(l.menuItemId, l.excludedIngredients) === key)?.quantity ?? 0;
+    },
+    [lines]
+  );
 
   const enrichedLines = useMemo(
     () =>
@@ -65,7 +84,17 @@ export function useCart(menuItemsById: Map<string, MenuItem>) {
 
   const itemCount = useMemo(() => lines.reduce((sum, l) => sum + l.quantity, 0), [lines]);
 
-  return { lines, enrichedLines, subtotalMinor, itemCount, addItem, decrementItem, removeItem, clearCart };
+  return {
+    lines,
+    enrichedLines,
+    subtotalMinor,
+    itemCount,
+    addItem,
+    decrementItem,
+    removeItem,
+    clearCart,
+    getQuantity,
+  };
 }
 
 /**

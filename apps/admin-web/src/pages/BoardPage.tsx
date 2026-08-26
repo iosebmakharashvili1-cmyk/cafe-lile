@@ -50,7 +50,7 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
 
   return (
     <div style={{ padding: "20px 24px" }}>
-      {soundState !== "armed" && (
+      {soundState !== "armed" && soundState !== "disabled" && (
         <div
           style={{
             background: soundState === "blocked" ? "var(--color-cancelled-tint)" : "var(--color-yellow-tint)",
@@ -111,7 +111,7 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))",
           gap: 20,
         }}
       >

@@ -105,11 +105,25 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
 
       <div style={{ borderTop: "1px solid var(--color-line)", margin: "10px 0", paddingTop: 10 }}>
         {order.items.map((item) => (
-          <div key={item.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 3 }}>
-            <span>
-              {item.quantity}× {item.itemNameSnapshot}
-            </span>
-            <span style={{ color: "var(--color-ink-soft)" }}>{formatPrice(item.lineTotalMinor, order.currencyCode)}</span>
+          <div key={item.id} style={{ marginBottom: 3 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+              <span>
+                {item.quantity}× {item.itemNameSnapshot}
+              </span>
+              <span style={{ color: "var(--color-ink-soft)" }}>{formatPrice(item.lineTotalMinor, order.currencyCode)}</span>
+            </div>
+            {(item.excludedIngredients ?? []).length > 0 && (
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "var(--color-cancelled)",
+                  marginTop: 1,
+                }}
+              >
+                ✕ without {item.excludedIngredients.join(", ")}
+              </div>
+            )}
           </div>
         ))}
         {order.deliveryFeeMinor > 0 && (

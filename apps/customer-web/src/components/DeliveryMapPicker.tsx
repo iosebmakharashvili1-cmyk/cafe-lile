@@ -6,9 +6,10 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 // in the MapTiler dashboard for production. Free tier: 5,000 map sessions/month.
 maptilersdk.config.apiKey = import.meta.env.VITE_MAPTILER_API_KEY ?? "";
 
-// Tbilisi city center — reasonable default view for Cafe Lile's delivery area.
-const DEFAULT_CENTER: [number, number] = [44.8271, 41.7151]; // [lng, lat] for MapTiler
-const DEFAULT_ZOOM = 13;
+// Cafe Lile sits in the village of Mukhrani (Mtskheta municipality) —
+// the map always opens centered there.
+const MUKHRANI_CENTER: [number, number] = [44.57667, 41.93389]; // [lng, lat] for MapTiler
+const DEFAULT_ZOOM = 14;
 
 export interface PickedLocation {
   latitude: number;
@@ -33,7 +34,7 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
     const map = new maptilersdk.Map({
       container: containerRef.current,
       style: maptilersdk.MapStyle.HYBRID, // satellite + labels
-      center: value ? [value.longitude, value.latitude] : DEFAULT_CENTER,
+      center: MUKHRANI_CENTER,
       zoom: DEFAULT_ZOOM,
       navigationControl: true,
       geolocateControl: false,
@@ -49,6 +50,13 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
 
     if (value) {
       placeMarker(value.latitude, value.longitude);
+      // Still open on Mukhrani, but make sure a previously picked pin stays visible.
+      map.once("load", () => {
+        const bounds = new maptilersdk.LngLatBounds();
+        bounds.extend(MUKHRANI_CENTER);
+        bounds.extend([value.longitude, value.latitude]);
+        map.fitBounds(bounds, { padding: 70, maxZoom: 15 });
+      });
     }
 
     return () => {

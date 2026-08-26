@@ -5,6 +5,7 @@ import { BoardPage } from "./pages/BoardPage";
 import { MenuPage } from "./pages/MenuPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { NavBar } from "./components/NavBar";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 
 type AuthState =
   | { status: "checking" }
@@ -14,6 +15,7 @@ type AuthState =
 export default function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "checking" });
   const [activeTab, setActiveTab] = useState<"board" | "menu" | "settings">("board");
+  const [isLogoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
     getSession()
@@ -32,7 +34,13 @@ export default function App() {
     setAuth({ status: "signed_out" });
   }, []);
 
+  // Called by the NavBar button — opens the confirmation modal first.
+  function requestLogout() {
+    setLogoutOpen(true);
+  }
+
   async function handleLogout() {
+    setLogoutOpen(false);
     await logout().catch(() => {});
     setAuth({ status: "signed_out" });
   }
@@ -55,7 +63,16 @@ export default function App() {
         displayName={auth.displayName}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onLogout={handleLogout}
+        onLogout={requestLogout}
+      />
+      <ConfirmDialog
+        isOpen={isLogoutOpen}
+        title="Sign out?"
+        body="You'll stop receiving new-order alerts on this device until you sign in again."
+        confirmLabel="Sign out"
+        tone="danger"
+        onConfirm={handleLogout}
+        onCancel={() => setLogoutOpen(false)}
       />
       {activeTab === "board" ? (
         <BoardPage onSessionExpired={handleSessionExpired} />

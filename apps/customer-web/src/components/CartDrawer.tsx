@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import type { MenuItem } from "@cafe-lile/contracts";
 import { formatPrice } from "../lib/format";
-import type { CartLine } from "../hooks/useCart";
+import { cartLineKey, type CartLine } from "../hooks/useCart";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -9,8 +9,8 @@ interface CartDrawerProps {
   enrichedLines: (CartLine & { item: MenuItem })[];
   subtotalMinor: number;
   currencyCode: string;
-  onAdd: (id: string) => void;
-  onDecrement: (id: string) => void;
+  onAdd: (id: string, excludedIngredients?: string[]) => void;
+  onDecrement: (id: string, excludedIngredients?: string[]) => void;
   onCheckout: () => void;
 }
 
@@ -103,9 +103,9 @@ export function CartDrawer({
                   Your cart is empty. Add something from the menu to get started.
                 </p>
               ) : (
-                enrichedLines.map(({ item, menuItemId, quantity }) => (
+                enrichedLines.map(({ item, menuItemId, quantity, excludedIngredients }) => (
                   <div
-                    key={menuItemId}
+                    key={cartLineKey(menuItemId, excludedIngredients)}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -116,6 +116,11 @@ export function CartDrawer({
                   >
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: 14.5 }}>{item.name}</div>
+                      {excludedIngredients.length > 0 && (
+                        <div style={{ fontSize: 12, color: "var(--color-cancelled)", marginTop: 2 }}>
+                          without {excludedIngredients.map((i) => i.toLowerCase()).join(", ")}
+                        </div>
+                      )}
                       <div style={{ fontSize: 13, color: "var(--color-ink-soft)", marginTop: 2 }}>
                         {formatPrice(item.priceMinor, currencyCode)} each
                       </div>
@@ -131,7 +136,7 @@ export function CartDrawer({
                       }}
                     >
                       <button
-                        onClick={() => onDecrement(menuItemId)}
+                        onClick={() => onDecrement(menuItemId, excludedIngredients)}
                         aria-label={`Remove one ${item.name}`}
                         style={miniStepperStyle}
                       >
@@ -141,7 +146,7 @@ export function CartDrawer({
                         {quantity}
                       </span>
                       <button
-                        onClick={() => onAdd(menuItemId)}
+                        onClick={() => onAdd(menuItemId, excludedIngredients)}
                         aria-label={`Add one more ${item.name}`}
                         style={miniStepperStyle}
                       >
@@ -188,8 +193,12 @@ export function CartDrawer({
 }
 
 const miniStepperStyle: React.CSSProperties = {
-  width: 22,
-  height: 22,
+  width: 30,
+  height: 30,
+  // Invisible padding expands the tap target toward the 44px accessibility
+  // minimum without visually enlarging the compact stepper button.
+  padding: 7,
+  backgroundClip: "content-box",
   borderRadius: 5,
   border: "none",
   background: "var(--color-surface)",

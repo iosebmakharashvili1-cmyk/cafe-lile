@@ -58,6 +58,7 @@ export function MenuList({ categories, items, currencyCode, quantitiesByItemId, 
                     key={item.id}
                     variants={rowVariants}
                     onClick={() => onItemTap(item)}
+                    className="menu-row"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -76,7 +77,7 @@ export function MenuList({ categories, items, currencyCode, quantitiesByItemId, 
                     }}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, fontSize: 15 }}>{item.name}</div>
+                      <div className="menu-row-name" style={{ fontWeight: 600, fontSize: 15 }}>{item.name}</div>
                       {item.description && (
                         <div
                           style={{

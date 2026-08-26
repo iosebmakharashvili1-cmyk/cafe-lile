@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { getSettings, updateSettings, type AdminSettings } from "../lib/api";
+import { useKitchenSound } from "../hooks/useKitchenSound";
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [isSaving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const { soundState, disableSound, reEnableSound } = useKitchenSound();
 
   useEffect(() => {
     getSettings().then((res) => setSettings(res.settings));
@@ -65,6 +67,42 @@ export function SettingsPage() {
         <ToggleSwitch checked={accepting} onChange={handleToggleAccepting} />
       </div>
 
+      {/* Kitchen sound — permanent once enabled; requires an explicit toggle here to turn off. */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: soundState === "disabled" ? "var(--color-line)" : "var(--color-yellow-tint)",
+          borderRadius: "var(--radius-md)",
+          padding: 18,
+          marginBottom: 24,
+        }}
+      >
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>Kitchen sound</div>
+          <div style={{ fontSize: 13, color: "var(--color-ink-soft)", marginTop: 2 }}>
+            {soundState === "disabled"
+              ? "Off — new orders won't play a sound on any device."
+              : soundState === "armed"
+                ? "On — stays on across reloads until turned off here."
+                : soundState === "blocked"
+                  ? "Blocked by the browser — click Enable kitchen sound on the Orders page."
+                  : "On — will ask for one tap to arm sound on each new page load."}
+          </div>
+        </div>
+        <ToggleSwitch
+          checked={soundState !== "disabled"}
+          onChange={() => {
+            if (soundState === "disabled") {
+              reEnableSound();
+            } else {
+              disableSound();
+            }
+          }}
+        />
+      </div>
+
       <Field label="Pickup / delivery instructions">
         <textarea
           defaultValue={settings.pickupInstructions}
@@ -100,27 +138,44 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
       style={{
         width: 48,
         height: 28,
-        borderRadius: 999,
+        // Invisible padding via a pseudo hit-area: wrap in a larger
+        // transparent tap zone so the real target meets ~44px without
+        // growing the visual pill.
+        padding: 8,
+        margin: -8,
+        background: "transparent",
         border: "none",
-        background: checked ? "var(--color-yellow)" : "var(--color-line)",
-        position: "relative",
         cursor: "pointer",
         flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
       }}
     >
-      <motion.div
-        animate={{ x: checked ? 22 : 2 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      <span
         style={{
-          position: "absolute",
-          top: 2,
-          width: 24,
-          height: 24,
-          borderRadius: "50%",
-          background: "var(--color-surface)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          width: 48,
+          height: 28,
+          borderRadius: 999,
+          background: checked ? "var(--color-yellow)" : "var(--color-line)",
+          position: "relative",
+          display: "block",
         }}
-      />
+      >
+        <motion.span
+          animate={{ x: checked ? 22 : 2 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          style={{
+            position: "absolute",
+            top: 2,
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            background: "var(--color-surface)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+            display: "block",
+          }}
+        />
+      </span>
     </button>
   );
 }

@@ -56,6 +56,8 @@ export interface AdminOrderItem {
   unitPriceMinor: number;
   quantity: number;
   lineTotalMinor: number;
+  /** Ingredients the customer asked to leave out of this dish. */
+  excludedIngredients: string[];
 }
 
 export interface AdminOrderRow {
@@ -78,8 +80,19 @@ export interface AdminOrderRow {
   items: AdminOrderItem[];
 }
 
-export function getActiveOrders(): Promise<{ orders: AdminOrderRow[] }> {
-  return request("/v1/admin/orders");
+export async function getActiveOrders(): Promise<{ orders: AdminOrderRow[] }> {
+  const res = await request<{ orders: AdminOrderRow[] }>("/v1/admin/orders");
+  // Defensive normalization: an older deployed Worker may omit excludedIngredients
+  // (the field was added in migration 0004). Never let a missing field crash the board.
+  return {
+    orders: (res.orders ?? []).map((o) => ({
+      ...o,
+      items: (o.items ?? []).map((i) => ({
+        ...i,
+        excludedIngredients: Array.isArray(i.excludedIngredients) ? i.excludedIngredients : [],
+      })),
+    })),
+  };
 }
 
 export function updateOrderStatus(orderId: string, status: OrderStatus): Promise<{ status: OrderStatus }> {
