@@ -139,6 +139,7 @@ html[data-theme="dark"] {
   color: var(--color-yellow-deep);
 }
 .menu-row-name {
+  color: var(--color-ink);
   transition: color 160ms ease;
 }
 
