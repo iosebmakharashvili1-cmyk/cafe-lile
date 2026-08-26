@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PublicMenuResponse, CreateOrderResponse, FulfillmentMethod, MenuItem } from "@cafe-lile/contracts";
+import type { PublicMenuResponse, CreateOrderResponse, FulfillmentMethod, PaymentMethod, MenuItem } from "@cafe-lile/contracts";
 import { fetchMenu, submitOrder, ApiError } from "./lib/api";
 import { captureAttribution, attributionNoteSuffix } from "./lib/utm";
 import { ScrollProgress } from "./components/ScrollProgress";
@@ -79,6 +79,7 @@ export default function App() {
     customerPhone: string;
     customerNote?: string;
     fulfillmentMethod: FulfillmentMethod;
+    paymentMethod: PaymentMethod;
     deliveryLocation?: { address: string; latitude: number; longitude: number };
   }) {
     setSubmitting(true);

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import type { FulfillmentMethod } from "@cafe-lile/contracts";
+import type { FulfillmentMethod, PaymentMethod } from "@cafe-lile/contracts";
 import { resolveDeliveryZone } from "@cafe-lile/contracts";
 import { formatPrice } from "../lib/format";
+import { useT } from "../lib/i18n";
 import { DeliveryMapPicker, type PickedLocation } from "./DeliveryMapPicker";
 
 interface CheckoutFormProps {
@@ -15,6 +16,7 @@ interface CheckoutFormProps {
     customerPhone: string;
     customerNote?: string;
     fulfillmentMethod: FulfillmentMethod;
+    paymentMethod: PaymentMethod;
     deliveryLocation?: { address: string; latitude: number; longitude: number };
   }) => void;
   onBack: () => void;
@@ -32,6 +34,7 @@ export function CheckoutForm({
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [method, setMethod] = useState<FulfillmentMethod>("pickup");
+  const [payment, setPayment] = useState<PaymentMethod>("cash");
   const [address, setAddress] = useState("");
   const [pin, setPin] = useState<PickedLocation | null>(null);
   const [touched, setTouched] = useState<{ name: boolean; phone: boolean }>({ name: false, phone: false });
@@ -64,9 +67,31 @@ export function CheckoutForm({
       <h2 style={{ fontSize: 24, marginBottom: 20 }}>Checkout</h2>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        <MethodTab label="Pickup" active={method === "pickup"} onClick={() => setMethod("pickup")} />
-        <MethodTab label="Delivery" active={method === "delivery"} onClick={() => setMethod("delivery")} />
+        <MethodTab label={t("checkout_pickup")} active={method === "pickup"} onClick={() => setMethod("pickup")} />
+        <MethodTab label={t("checkout_delivery")} active={method === "delivery"} onClick={() => setMethod("delivery")} />
       </div>
+
+      <Field label={t("payment_label")}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <MethodTab
+            label={`💵 ${t("payment_cash")}`}
+            active={payment === "cash"}
+            onClick={() => setPayment("cash")}
+          />
+          <MethodTab
+            label={`💳 ${t("payment_card")}`}
+            active={payment === "card_on_delivery"}
+            onClick={() => setPayment("card_on_delivery")}
+          />
+        </div>
+        <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8 }}>
+          {payment === "card_on_delivery"
+            ? method === "delivery"
+              ? t("payment_card_hint_delivery")
+              : t("payment_card_hint_pickup")
+            : t("payment_cash_hint")}
+        </div>
+      </Field>
 
       <Field label="Your name" error={nameError}>
         <input
@@ -169,7 +194,9 @@ export function CheckoutForm({
           <span>{formatPrice(totalMinor, currencyCode)}</span>
         </div>
         <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8 }}>
-          Payment is cash, due at {method === "pickup" ? "pickup" : "delivery"}.
+          {payment === "card_on_delivery"
+            ? t("payment_due_card")
+            : t("payment_due_cash")}
         </div>
       </div>
 
@@ -201,7 +228,8 @@ export function CheckoutForm({
             customerPhone: phone.trim(),
             customerNote: note.trim() || undefined,
             fulfillmentMethod: method,
-            deliveryLocation:
+              paymentMethod: payment,
+              deliveryLocation:
               method === "delivery" && pin
                 ? { address: address.trim(), latitude: pin.latitude, longitude: pin.longitude }
                 : undefined,

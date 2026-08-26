@@ -2,15 +2,15 @@ const STORAGE_KEY = "cl_theme";
 
 export type Theme = "light" | "dark";
 
-/** Resolves the initial theme: saved choice first, then OS preference. */
+/** Resolves the initial theme: saved choice first, light for everyone else. */
 export function getInitialTheme(): Theme {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved === "light" || saved === "dark") return saved;
   } catch {
-    // Storage can be unavailable (private mode) — fall through to OS setting.
+    // Storage can be unavailable (private mode) — fall through to the default.
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 export function applyTheme(theme: Theme): void {

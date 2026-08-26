@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { applyTheme, getInitialTheme, saveTheme, type Theme } from "../lib/theme";
 
-/** Light/dark toggle. Persists the choice and defaults to the OS preference. */
+/** Light/dark toggle. Persists the choice; first-time visitors get light. */
 export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
 

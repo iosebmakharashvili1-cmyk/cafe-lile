@@ -71,17 +71,37 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
 
       <div
         style={{
-          display: "inline-block",
-          fontSize: 11,
-          fontWeight: 700,
-          padding: "2px 8px",
-          borderRadius: 5,
+          display: "inline-flex",
+          gap: 6,
+          flexWrap: "wrap",
           marginBottom: 8,
-          background: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-tint)" : "var(--color-line)",
-          color: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-deep)" : "var(--color-ink-soft)",
         }}
       >
-        {order.fulfillmentMethod === "delivery" ? "DELIVERY" : "PICKUP"}
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: "2px 8px",
+            borderRadius: 5,
+            background: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-tint)" : "var(--color-line)",
+            color: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-deep)" : "var(--color-ink-soft)",
+          }}
+        >
+          {order.fulfillmentMethod === "delivery" ? "DELIVERY" : "PICKUP"}
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: "2px 8px",
+            borderRadius: 5,
+            background:
+              order.paymentMethod === "card_on_delivery" ? "var(--color-ready-tint)" : "var(--color-line)",
+            color: order.paymentMethod === "card_on_delivery" ? "var(--color-ready)" : "var(--color-ink-soft)",
+          }}
+        >
+          {order.paymentMethod === "card_on_delivery" ? "💳 CARD ON DELIVERY" : "CASH"}
+        </span>
       </div>
 
       {order.fulfillmentMethod === "delivery" && order.deliveryAddress && (

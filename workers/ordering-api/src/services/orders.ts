@@ -1,5 +1,5 @@
 import type { Env } from "../env";
-import type { CreateOrderRequest, OrderStatus } from "@cafe-lile/contracts";
+import type { CreateOrderRequest, OrderStatus, PaymentMethod } from "@cafe-lile/contracts";
 import { ALLOWED_TRANSITIONS, resolveDeliveryZone } from "@cafe-lile/contracts";
 import { ApiHttpError, newId, nowIso } from "../lib/http";
 
@@ -46,7 +46,8 @@ export async function createOrder(
   const existing = await env.DB.prepare(
     `SELECT id, reference, status, subtotal_minor as subtotalMinor,
             delivery_fee_minor as deliveryFeeMinor, total_minor as totalMinor,
-            currency_code as currencyCode, placed_at as placedAt
+            currency_code as currencyCode, placed_at as placedAt,
+            payment_method as paymentMethod
      FROM orders WHERE idempotency_key = ?`
   )
     .bind(idempotencyKey)
@@ -59,6 +60,7 @@ export async function createOrder(
       totalMinor: number;
       currencyCode: string;
       placedAt: string;
+      paymentMethod: PaymentMethod;
     }>();
 
   const settings = await env.DB.prepare(
@@ -82,6 +84,7 @@ export async function createOrder(
         placedAt: existing.placedAt,
         pickupInstructions: settings.pickup_instructions,
         fulfillmentMethod: body.fulfillmentMethod,
+        paymentMethod: existing.paymentMethod,
       },
     };
   }
@@ -180,13 +183,15 @@ export async function createOrder(
         payment_method, payment_status, currency_code, subtotal_minor,
         delivery_fee_minor, total_minor, fulfillment_method, delivery_address,
         delivery_latitude, delivery_longitude, idempotency_key, placed_at, updated_at
-      ) VALUES (?, ?, 'new', ?, ?, ?, 'cash_pickup', 'unpaid', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, 'new', ?, ?, ?, ?, 'unpaid', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       orderId,
       reference,
       body.customerName,
       body.customerPhone,
       body.customerNote ?? null,
+      // Card = BOG/TBC POS terminal presented at handover — no online charge here.
+      body.paymentMethod,
       settings.currency_code,
       subtotalMinor,
       deliveryFeeMinor,
@@ -225,6 +230,7 @@ export async function createOrder(
       placedAt,
       pickupInstructions: settings.pickup_instructions,
       fulfillmentMethod: body.fulfillmentMethod,
+      paymentMethod: body.paymentMethod,
     },
   };
 }
