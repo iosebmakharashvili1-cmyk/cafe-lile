@@ -3,9 +3,9 @@ interface SiteFooterProps {
 }
 
 // Kept in sync with FloatingContact.tsx's placeholder number.
-const CONTACT_PHONE_DISPLAY = "+995 555 12 34 56";
-const CONTACT_PHONE_TEL = "+995555123456";
-const WHATSAPP_NUMBER = "995555123456";
+const CONTACT_PHONE_DISPLAY = "+995 568 00 40 40";
+const CONTACT_PHONE_TEL = "+995568004040";
+const WHATSAPP_NUMBER = "995568004040";
 
 export function SiteFooter({ menuUpdatedAt }: SiteFooterProps) {
   return (
