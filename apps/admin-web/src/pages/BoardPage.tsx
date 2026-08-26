@@ -51,8 +51,13 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
   return (
     <div style={{ padding: "20px 24px" }}>
       {soundState !== "armed" && soundState !== "disabled" && (
-        <div
+        <button
+          onClick={enableSound}
+          disabled={soundState === "unlocking"}
           style={{
+            width: "100%",
+            textAlign: "left",
+            border: "none",
             background: soundState === "blocked" ? "var(--color-cancelled-tint)" : "var(--color-yellow-tint)",
             borderRadius: "var(--radius-md)",
             padding: "12px 16px",
@@ -61,15 +66,17 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 12,
+            cursor: soundState === "unlocking" ? "default" : "pointer",
           }}
         >
           <span style={{ fontSize: 13.5, fontWeight: 600, color: soundState === "blocked" ? "var(--color-cancelled)" : "var(--color-ink)" }}>
             {soundState === "blocked"
-              ? "Sound disabled — click Enable sound"
-              : "Enable kitchen sound to hear new-order alerts"}
+              ? "Sound blocked by the browser — tap to try again"
+              : soundState === "unlocking"
+                ? "Enabling…"
+                : "Tap to enable kitchen sound for this session"}
           </span>
-          <button
-            onClick={enableSound}
+          <span
             style={{
               border: "none",
               background: "var(--color-yellow)",
@@ -78,13 +85,12 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
               padding: "8px 16px",
               fontWeight: 700,
               fontSize: 13,
-              cursor: "pointer",
               flexShrink: 0,
             }}
           >
-            Enable kitchen sound
-          </button>
-        </div>
+            {soundState === "unlocking" ? "…" : "Enable"}
+          </span>
+        </button>
       )}
 
       <AnimatePresence>
