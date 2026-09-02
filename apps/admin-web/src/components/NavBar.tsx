@@ -9,9 +9,9 @@ interface NavBarProps {
 }
 
 const TABS: { id: "board" | "menu" | "settings"; label: string }[] = [
-  { id: "board", label: "Orders" },
-  { id: "menu", label: "Menu" },
-  { id: "settings", label: "Settings" },
+  { id: "board", label: "შეკვეთები" },
+  { id: "menu", label: "მენიუ" },
+  { id: "settings", label: "პარამეტრები" },
 ];
 
 export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBarProps) {
@@ -55,11 +55,11 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
             >
               CL
             </div>
-            <h1 style={{ fontSize: 17 }}>Cafe Lile Admin</h1>
+            <h1 style={{ fontSize: 17 }}>კაფე ლილეს ადმინი</h1>
           </div>
 
           {/* Desktop tabs */}
-          <nav className="nav-desktop-tabs" aria-label="Sections">
+          <nav className="nav-desktop-tabs" aria-label="განყოფილებები">
             {TABS.map((tab) => (
               <TabButton
                 key={tab.id}
@@ -87,7 +87,7 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
               color: "var(--color-ink)",
             }}
           >
-            Sign out
+            გასვლა
           </button>
         </div>
 
@@ -96,7 +96,7 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
           className="nav-mobile-toggle"
           onClick={() => setMobileMenuOpen((v) => !v)}
           aria-expanded={mobileMenuOpen}
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-label={mobileMenuOpen ? "მენიუს დახურვა" : "მენიუს გახსნა"}
           style={{
             display: "none",
             width: 44,
@@ -120,7 +120,7 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
         {mobileMenuOpen && (
           <motion.nav
             className="nav-mobile-sheet"
-            aria-label="Sections"
+            aria-label="განყოფილებები"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -178,7 +178,7 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
                 cursor: "pointer",
               }}
             >
-              Sign out ({displayName})
+              გასვლა ({displayName})
             </button>
           </motion.nav>
         )}

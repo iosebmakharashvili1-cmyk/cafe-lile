@@ -67,9 +67,9 @@ export default function App() {
       />
       <ConfirmDialog
         isOpen={isLogoutOpen}
-        title="Sign out?"
-        body="You'll stop receiving new-order alerts on this device until you sign in again."
-        confirmLabel="Sign out"
+        title="გასვლა?"
+        body="ამ მოწყობილობაზე შეწყდება ახალი შეკვეთების შესახებ შეტყობინებები, სანამ ხელახლა არ შეხვალთ."
+        confirmLabel="გასვლა"
         tone="danger"
         onConfirm={handleLogout}
         onCancel={() => setLogoutOpen(false)}

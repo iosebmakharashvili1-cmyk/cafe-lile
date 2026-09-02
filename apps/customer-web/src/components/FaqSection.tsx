@@ -9,24 +9,24 @@ interface FaqSectionProps {
 function buildFaqItems(prepMinutes: number) {
   return [
     {
-      q: "How long does an order take?",
-      a: `Most orders are ready in about ${prepMinutes} minutes. During busy hours it can take a little longer — we'll call you if there's a delay.`,
+      q: "რამდენ ხანში მზადდება შეკვეთა?",
+      a: `უმეტესი შეკვეთა მზად არის დაახლოებით ${prepMinutes} წუთში. დატვირთულ საათებში შეიძლება ცოტა მეტი დასჭირდეს — შეფერხების შემთხვევაში დაგირეკავთ.`,
     },
     {
-      q: "How do I pay?",
-      a: "Payment is cash, due at pickup or when your order is delivered — whatever is easiest for you.",
+      q: "როგორ ხდება გადახდა?",
+      a: "გადახდა ხდება ნაღდი ფულით ან ბარათით — აღებისას ან მიტანისას, თქვენთვის მოსახერხებელი ვარიანტით.",
     },
     {
-      q: "Where do you deliver?",
-      a: "We deliver around Mukhrani and the nearby villages (Ksovrisi, Dzalisi, Vaziani, Vardisubani, Iltoza, Odzisi). Pin your location at checkout and we'll confirm the delivery fee before you order.",
+      q: "სად მიგაქვთ შეკვეთები?",
+      a: "ჩვენ ვმიტანთ მუხრანსა და მიმდებარე სოფლებში (ქსოვრისი, ძალისი, ვაზიანი, ვარდისუბანი, ილტოზა, ოძისი). შეკვეთის გაფორმებისას მონიშნეთ თქვენი მდებარეობა და დავადასტურებთ მიტანის საფასურს შეკვეთამდე.",
     },
     {
-      q: "Can I remove ingredients?",
-      a: "Yes — tap any dish, then tap the ingredients you'd like left out. The kitchen sees your choices on the ticket.",
+      q: "შემიძლია ინგრედიენტების მოხსნა?",
+      a: "დიახ — შეეხეთ ნებისმიერ კერძს და აირჩიეთ ინგრედიენტები, რომლებიც არ გსურთ. სამზარეულო ხედავს თქვენს არჩევანს შეკვეთის ტიკეტზე.",
     },
     {
-      q: "How will I know my order is ready?",
-      a: "Keep your order reference (you can copy or print it after ordering). If anything changes we'll call the phone number you gave us.",
+      q: "როგორ გავიგებ, რომ შეკვეთა მზადაა?",
+      a: "შეინახეთ თქვენი შეკვეთის ნომერი (შეგიძლიათ დააკოპიროთ ან დაბეჭდოთ შეკვეთის შემდეგ). ცვლილების შემთხვევაში დაგირეკავთ თქვენს მიერ მითითებულ ნომერზე.",
     },
   ];
 }
@@ -37,8 +37,8 @@ export function FaqSection({ prepMinutes = 20 }: FaqSectionProps) {
   const faqItems = buildFaqItems(prepMinutes);
 
   return (
-    <section style={{ padding: "0 20px", maxWidth: 640, margin: "0 auto" }} aria-label="Frequently asked questions">
-      <h2 style={{ fontSize: 21, marginBottom: 14 }}>Good to know</h2>
+    <section style={{ padding: "0 20px", maxWidth: 640, margin: "0 auto" }} aria-label="ხშირად დასმული კითხვები">
+      <h2 style={{ fontSize: 21, marginBottom: 14 }}>სასარგებლო ინფორმაცია</h2>
       <div
         style={{
           background: "var(--color-surface)",

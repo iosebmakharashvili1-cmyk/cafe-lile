@@ -1,6 +1,6 @@
 export function BoardSkeleton() {
   return (
-    <div style={{ padding: "20px 24px" }} aria-busy="true" aria-label="Loading orders">
+    <div style={{ padding: "20px 24px" }} aria-busy="true" aria-label="შეკვეთების ჩატვირთვა">
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
         {[0, 1, 2, 3].map((col) => (
           <div key={col}>

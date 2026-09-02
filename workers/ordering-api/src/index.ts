@@ -40,7 +40,7 @@ export default {
         try {
           assertAdminOriginForMutation(request, env);
         } catch {
-          throw new ApiHttpError(403, "origin_rejected", "Request origin not permitted.");
+          throw new ApiHttpError(403, "origin_rejected", "მოთხოვნის წყარო არ არის დაშვებული.");
         }
       }
 
@@ -54,7 +54,7 @@ export default {
       const httpErr =
         err instanceof ApiHttpError
           ? err
-          : new ApiHttpError(500, "internal_error", "Something went wrong. Please try again.");
+          : new ApiHttpError(500, "internal_error", "დაფიქსირდა შეცდომა. გთხოვთ, სცადოთ თავიდან.");
       if (!(err instanceof ApiHttpError)) {
         console.error(`[${requestId}]`, err);
       }
@@ -124,5 +124,5 @@ async function route(request: Request, env: Env, path: string): Promise<Response
     return postAdminMenuImage(request, env);
   }
 
-  throw new ApiHttpError(404, "not_found", "No such endpoint.");
+  throw new ApiHttpError(404, "not_found", "მისამართი ვერ მოიძებნა.");
 }

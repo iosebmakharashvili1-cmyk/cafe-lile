@@ -83,7 +83,7 @@ export function FloatingContact({ liftedForCartBar = false }: FloatingContactPro
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={open ? "Close contact options" : "Contact us"}
+        aria-label={open ? "კონტაქტის ვარიანტების დახურვა" : "დაგვიკავშირდით"}
         className="pressable"
         style={{
           width: 48,

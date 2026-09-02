@@ -44,7 +44,7 @@ export function SettingsPage() {
 
   return (
     <div style={{ padding: "20px 24px", maxWidth: 520 }}>
-      <h2 style={{ fontSize: 20, marginBottom: 20 }}>Settings</h2>
+      <h2 style={{ fontSize: 20, marginBottom: 20 }}>პარამეტრები</h2>
 
       {/* Accepting orders is deliberately the first control — an unmistakable pause switch */}
       <div
@@ -59,9 +59,9 @@ export function SettingsPage() {
         }}
       >
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>Accepting orders</div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>შეკვეთების მიღება</div>
           <div style={{ fontSize: 13, color: "var(--color-ink-soft)", marginTop: 2 }}>
-            {accepting ? "Customers can place orders now." : "Ordering is paused for customers."}
+            {accepting ? "მომხმარებლებს შეუძლიათ შეკვეთის გაფორმება." : "შეკვეთების მიღება დაპაუზებულია."}
           </div>
         </div>
         <ToggleSwitch checked={accepting} onChange={handleToggleAccepting} />
@@ -80,15 +80,15 @@ export function SettingsPage() {
         }}
       >
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>Kitchen sound</div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>სამზარეულოს ხმოვანი სიგნალი</div>
           <div style={{ fontSize: 13, color: "var(--color-ink-soft)", marginTop: 2 }}>
             {soundState === "disabled"
-              ? "Off — new orders won't play a sound on any device."
+              ? "გამორთულია — ახალი შეკვეთისას ხმა არცერთ მოწყობილობაზე არ ჩაირთვება."
               : soundState === "armed"
-                ? "On — stays on across reloads until turned off here."
+                ? "ჩართულია — რჩება ჩართული განახლების შემდეგაც, სანამ აქ არ გამორთავთ."
                 : soundState === "blocked"
-                  ? "Blocked by the browser — click Enable kitchen sound on the Orders page."
-                  : "On — will ask for one tap to arm sound on each new page load."}
+                  ? "დაბლოკილია ბრაუზერის მიერ — დააჭირეთ „ხმის ჩართვას“ შეკვეთების გვერდზე."
+                  : "ჩართულია — ყოველი ახალი ჩატვირთვისას საჭირო იქნება ერთი შეხება ხმის გასააქტიურებლად."}
           </div>
         </div>
         <ToggleSwitch
@@ -103,7 +103,7 @@ export function SettingsPage() {
         />
       </div>
 
-      <Field label="Pickup / delivery instructions">
+      <Field label="აღების / მიტანის ინსტრუქცია">
         <textarea
           defaultValue={settings.pickupInstructions}
           onBlur={(e) => handleFieldSave("pickupInstructions", e.target.value)}
@@ -112,7 +112,7 @@ export function SettingsPage() {
         />
       </Field>
 
-      <Field label="Default prep time (minutes)">
+      <Field label="მომზადების საშუალო დრო (წუთებში)">
         <input
           type="number"
           min={1}
@@ -123,7 +123,7 @@ export function SettingsPage() {
       </Field>
 
       <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8 }}>
-        {isSaving ? "Saving…" : savedAt ? "Saved" : ""}
+        {isSaving ? "ინახება…" : savedAt ? "შენახულია" : ""}
       </div>
     </div>
   );

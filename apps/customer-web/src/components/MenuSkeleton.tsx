@@ -1,6 +1,6 @@
 export function MenuSkeleton() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 36 }} aria-busy="true" aria-label="Loading menu">
+    <div style={{ display: "flex", flexDirection: "column", gap: 36 }} aria-busy="true" aria-label="მენიუს ჩატვირთვა">
       <div style={{ padding: "0 20px" }}>
         <div className="skeleton" style={{ width: "100%", height: 160, borderRadius: "var(--radius-md)" }} />
       </div>

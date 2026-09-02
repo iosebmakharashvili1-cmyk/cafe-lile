@@ -24,12 +24,12 @@ export const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  new: "New",
-  accepted: "Accepted",
-  preparing: "Preparing",
-  ready: "Ready for pickup",
-  completed: "Completed",
-  cancelled: "Cancelled",
+  new: "ახალი",
+  accepted: "მიღებულია",
+  preparing: "მზადდება",
+  ready: "მზადაა",
+  completed: "დასრულებულია",
+  cancelled: "გაუქმებულია",
 };
 
 // ---------- Menu ----------

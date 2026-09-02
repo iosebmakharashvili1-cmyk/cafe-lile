@@ -42,7 +42,7 @@ export function CartDrawer({
           />
           <motion.div
             role="dialog"
-            aria-label="Your order"
+            aria-label="თქვენი შეკვეთა"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -79,10 +79,10 @@ export function CartDrawer({
                 borderBottom: "1px solid var(--color-line)",
               }}
             >
-              <h2 style={{ fontSize: 20 }}>Your order</h2>
+              <h2 style={{ fontSize: 20 }}>თქვენი შეკვეთა</h2>
               <button
                 onClick={onClose}
-                aria-label="Close cart"
+                aria-label="კალათის დახურვა"
                 style={{
                   border: "none",
                   background: "transparent",
@@ -100,7 +100,7 @@ export function CartDrawer({
             <div style={{ flex: 1, overflowY: "auto", padding: "8px 24px" }}>
               {enrichedLines.length === 0 ? (
                 <p style={{ color: "var(--color-ink-soft)", marginTop: 40, textAlign: "center" }}>
-                  Your cart is empty. Add something from the menu to get started.
+                  თქვენი კალათა ცარიელია. აირჩიეთ რამე მენიუდან დასაწყებად.
                 </p>
               ) : (
                 enrichedLines.map(({ item, menuItemId, quantity, excludedIngredients }) => (
@@ -118,11 +118,11 @@ export function CartDrawer({
                       <div style={{ fontWeight: 600, fontSize: 14.5 }}>{item.name}</div>
                       {excludedIngredients.length > 0 && (
                         <div style={{ fontSize: 12, color: "var(--color-cancelled)", marginTop: 2 }}>
-                          without {excludedIngredients.map((i) => i.toLowerCase()).join(", ")}
+                          გარეშე: {excludedIngredients.map((i) => i.toLowerCase()).join(", ")}
                         </div>
                       )}
                       <div style={{ fontSize: 13, color: "var(--color-ink-soft)", marginTop: 2 }}>
-                        {formatPrice(item.priceMinor, currencyCode)} each
+                        {formatPrice(item.priceMinor, currencyCode)} / ცალი
                       </div>
                     </div>
                     <div
@@ -137,7 +137,7 @@ export function CartDrawer({
                     >
                       <button
                         onClick={() => onDecrement(menuItemId, excludedIngredients)}
-                        aria-label={`Remove one ${item.name}`}
+                        aria-label={`${item.name}-ის ერთი ცალის მოხსნა`}
                         style={miniStepperStyle}
                       >
                         −
@@ -147,7 +147,7 @@ export function CartDrawer({
                       </span>
                       <button
                         onClick={() => onAdd(menuItemId, excludedIngredients)}
-                        aria-label={`Add one more ${item.name}`}
+                        aria-label={`${item.name}-ის კიდევ ერთი ცალის დამატება`}
                         style={miniStepperStyle}
                       >
                         +
@@ -163,7 +163,7 @@ export function CartDrawer({
 
             <div style={{ padding: "20px 24px", borderTop: "1px solid var(--color-line)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, fontSize: 15 }}>
-                <span style={{ color: "var(--color-ink-soft)" }}>Estimated total</span>
+                <span style={{ color: "var(--color-ink-soft)" }}>სავარაუდო ჯამი</span>
                 <span style={{ fontWeight: 700 }}>{formatPrice(subtotalMinor, currencyCode)}</span>
               </div>
               <motion.button
@@ -182,7 +182,7 @@ export function CartDrawer({
                   cursor: enrichedLines.length === 0 ? "not-allowed" : "pointer",
                 }}
               >
-                Checkout
+                გადახდაზე გადასვლა
               </motion.button>
             </div>
           </motion.div>

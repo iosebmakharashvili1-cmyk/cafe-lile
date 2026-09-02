@@ -30,7 +30,7 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
         ✓
       </motion.div>
 
-      <h2 style={{ fontSize: 24, marginBottom: 8 }}>Order placed</h2>
+      <h2 style={{ fontSize: 24, marginBottom: 8 }}>შეკვეთა განთავსებულია</h2>
       <p style={{ color: "var(--color-ink-soft)", marginBottom: 28, fontSize: 14.5 }}>
         {order.fulfillmentMethod === "pickup"
           ? "We'll have it ready for pickup."
@@ -50,7 +50,7 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
         <div style={{ fontSize: 32, fontFamily: "var(--font-display)", fontWeight: 700, letterSpacing: "0.02em" }}>
           {order.reference}
         </div>
-        <CopyButton value={order.reference} label="Copy reference" />
+        <CopyButton value={order.reference} label="ნომრის კოპირება" />
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(33,28,18,0.1)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
             <span>Total (cash on {order.fulfillmentMethod})</span>

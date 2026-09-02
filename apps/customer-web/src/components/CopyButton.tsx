@@ -7,7 +7,7 @@ interface CopyButtonProps {
 }
 
 /** Small copy-to-clipboard button with a transient success state. */
-export function CopyButton({ value, label = "Copy", copiedLabel = "Copied ✓" }: CopyButtonProps) {
+export function CopyButton({ value, label = "კოპირება", copiedLabel = "დაკოპირდა ✓" }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   // Reset back so the button can be used again after a moment.

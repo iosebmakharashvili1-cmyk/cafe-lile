@@ -135,12 +135,12 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
             boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
           }}
         >
-          {mapStyle === "satellite" ? "Street view" : "Satellite view"}
+          {mapStyle === "satellite" ? "სტანდარტული ხედი" : "სატელიტური ხედი"}
         </button>
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
         <span style={{ fontSize: 12.5, color: "var(--color-ink-soft)" }}>
-          {value ? "Tap the map to adjust the pin" : "Tap the map to drop a pin at your delivery location"}
+          {value ? "შეეხეთ რუკას მდებარეობის შესაცვლელად" : "შეეხეთ რუკას მიტანის მისამართის მოსანიშნად"}
         </span>
         <button
           type="button"
@@ -158,7 +158,7 @@ export function DeliveryMapPicker({ value, onChange }: DeliveryMapPickerProps) {
             flexShrink: 0,
           }}
         >
-          {isLocating ? "Locating…" : "Use my location"}
+          {isLocating ? "მდებარეობის განსაზღვრა…" : "ჩემი მდებარეობის გამოყენება"}
         </button>
       </div>
     </div>

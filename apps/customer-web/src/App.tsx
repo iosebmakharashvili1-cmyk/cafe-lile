@@ -107,7 +107,7 @@ export default function App() {
           fetchMenu().then(setMenu).catch(() => {});
         }
       } else {
-        setSubmitError("Something went wrong. Please try again.");
+        setSubmitError("დაფიქსირდა შეცდომა. გთხოვთ, სცადოთ თავიდან.");
       }
     } finally {
       setSubmitting(false);

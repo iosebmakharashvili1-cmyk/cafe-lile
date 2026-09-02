@@ -9,10 +9,10 @@ import { OrderCard } from "../components/OrderCard";
 import { BoardSkeleton } from "../components/BoardSkeleton";
 
 const COLUMNS: { status: OrderStatus; label: string }[] = [
-  { status: "new", label: "New" },
-  { status: "accepted", label: "Accepted" },
-  { status: "preparing", label: "Preparing" },
-  { status: "ready", label: "Ready" },
+  { status: "new", label: "ახალი" },
+  { status: "accepted", label: "მიღებული" },
+  { status: "preparing", label: "მზადდება" },
+  { status: "ready", label: "მზადაა" },
 ];
 
 interface BoardPageProps {
@@ -71,10 +71,10 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
         >
           <span style={{ fontSize: 13.5, fontWeight: 600, color: soundState === "blocked" ? "var(--color-cancelled)" : "var(--color-ink)" }}>
             {soundState === "blocked"
-              ? "Sound blocked by the browser — tap to try again"
+              ? "ხმა დაბლოკილია ბრაუზერის მიერ — შეეხეთ ხელახლა საცდელად"
               : soundState === "unlocking"
-                ? "Enabling…"
-                : "Tap to enable kitchen sound for this session"}
+                ? "ირთვება…"
+                : "შეეხეთ სამზარეულოს ხმის ჩასართავად ამ სესიისთვის"}
           </span>
           <span
             style={{
@@ -88,7 +88,7 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
               flexShrink: 0,
             }}
           >
-            {soundState === "unlocking" ? "…" : "Enable"}
+            {soundState === "unlocking" ? "…" : "ჩართვა"}
           </span>
         </button>
       )}
@@ -109,7 +109,7 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
               fontWeight: 600,
             }}
           >
-            Connection lost — showing last known orders, retrying…
+            კავშირი დაიკარგა — ნაჩვენებია ბოლო ცნობილი შეკვეთები, ხდება ხელახალი მცდელობა…
           </motion.div>
         )}
       </AnimatePresence>
@@ -144,7 +144,7 @@ export function BoardPage({ onSessionExpired }: BoardPageProps) {
                 <AnimatePresence>
                   {columnOrders.length === 0 ? (
                     <div style={{ color: "var(--color-ink-soft)", fontSize: 13, padding: "8px 2px" }}>
-                      No orders
+                      შეკვეთები არ არის
                     </div>
                   ) : (
                     columnOrders.map((order) => (

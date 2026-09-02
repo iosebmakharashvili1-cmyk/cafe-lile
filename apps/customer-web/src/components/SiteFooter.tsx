@@ -26,22 +26,22 @@ export function SiteFooter({ menuUpdatedAt }: SiteFooterProps) {
             marginBottom: 20,
           }}
         >
-          <FooterColumn title="Contact">
+          <FooterColumn title="კონტაქტი">
             <FooterLink href={`tel:${CONTACT_PHONE_TEL}`}>{CONTACT_PHONE_DISPLAY}</FooterLink>
             <FooterLink href={`https://wa.me/${WHATSAPP_NUMBER}`} external>
               WhatsApp
             </FooterLink>
           </FooterColumn>
 
-          <FooterColumn title="We deliver to">
+          <FooterColumn title="მიტანის არეალი">
             <span style={{ fontSize: 13, color: "var(--color-ink-soft)" }}>
-              Mukhrani, Ksovrisi, Dzalisi, Iltoza, Odzisi
+              მუხრანი, ქსოვრისი, ძალისი, ვაზიანი, ვარდისუბანი, ილტოზა, ოძისი
             </span>
           </FooterColumn>
 
-          <FooterColumn title="Legal">
-            <FooterLink href="/privacy">Privacy</FooterLink>
-            <FooterLink href="/terms">Terms</FooterLink>
+          <FooterColumn title="სამართლებრივი">
+            <FooterLink href="/privacy">კონფიდენციალურობა</FooterLink>
+            <FooterLink href="/terms">წესები</FooterLink>
           </FooterColumn>
         </div>
 
@@ -57,10 +57,10 @@ export function SiteFooter({ menuUpdatedAt }: SiteFooterProps) {
             color: "var(--color-ink-soft)",
           }}
         >
-          <span>© {new Date().getFullYear()} Cafe Lile, Mukhrani</span>
+          <span>© {new Date().getFullYear()} კაფე ლილე, მუხრანი</span>
           {menuUpdatedAt && (
             <span>
-              Menu updated {menuUpdatedAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+              მენიუ განახლდა {menuUpdatedAt.toLocaleDateString("ka-GE", { day: "numeric", month: "long", year: "numeric" })}
             </span>
           )}
         </div>

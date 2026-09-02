@@ -103,7 +103,7 @@ export function HeroBanner({ restaurantName, acceptingOrders }: HeroBannerProps)
             }}
           />
           <span style={{ fontSize: 14, fontWeight: 600, color: "rgba(33,28,18,0.75)" }}>
-            {acceptingOrders ? "Open for orders" : "Not accepting orders right now"}
+            {acceptingOrders ? "მიმდინარეობს შეკვეთების მიღება" : "ამჟამად შეკვეთები არ მიიღება"}
           </span>
         </div>
       </div>

@@ -29,7 +29,7 @@ export function BackToTop({ liftedForCartBar = false }: BackToTopProps) {
           exit={{ opacity: 0, y: 12 }}
           transition={{ duration: 0.18 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label="Back to top"
+          aria-label="ზემოთ დაბრუნება"
           className="pressable"
           style={{
             position: "fixed",

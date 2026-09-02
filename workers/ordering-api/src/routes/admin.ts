@@ -39,13 +39,13 @@ export async function postAdminLogin(request: Request, env: Env): Promise<Respon
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = AdminLoginRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
     // Generic failure message regardless of which validation failed (OWASP guidance).
-    throw new ApiHttpError(401, "invalid_credentials", "Incorrect username or password.");
+    throw new ApiHttpError(401, "invalid_credentials", "არასწორი მომხმარებელი ან პაროლი.");
   }
 
   const user = await env.DB.prepare(
@@ -68,7 +68,7 @@ export async function postAdminLogin(request: Request, env: Env): Promise<Respon
 
   const ok = user && user.isActive && timingSafeEqual(candidateHash, user.passwordHash);
   if (!ok) {
-    throw new ApiHttpError(401, "invalid_credentials", "Incorrect username or password.");
+    throw new ApiHttpError(401, "invalid_credentials", "არასწორი მომხმარებელი ან პაროლი.");
   }
 
   const ip = request.headers.get("CF-Connecting-IP");
@@ -203,12 +203,12 @@ export async function patchAdminOrderStatus(
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = UpdateOrderStatusRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    throw new ApiHttpError(400, "invalid_status", "Invalid status value.");
+    throw new ApiHttpError(400, "invalid_status", "სტატუსის არასწორი მნიშვნელობა.");
   }
 
   const result = await updateOrderStatus(env, orderId, parsed.data.status);
@@ -237,7 +237,7 @@ export async function patchAdminSettings(request: Request, env: Env): Promise<Re
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const fields: string[] = [];
@@ -257,7 +257,7 @@ export async function patchAdminSettings(request: Request, env: Env): Promise<Re
   }
 
   if (fields.length === 0) {
-    throw new ApiHttpError(400, "no_fields", "No valid settings fields provided.");
+    throw new ApiHttpError(400, "no_fields", "პარამეტრების ვერცერთი ველი არ არის მითითებული.");
   }
 
   fields.push("updated_at = ?");
@@ -328,12 +328,12 @@ export async function postAdminCategory(request: Request, env: Env): Promise<Res
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = CreateCategoryRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    throw new ApiHttpError(400, "invalid_category", parsed.error.issues[0]?.message ?? "Invalid category.");
+    throw new ApiHttpError(400, "invalid_category", parsed.error.issues[0]?.message ?? "კატეგორია არასწორია.");
   }
 
   const id = newId("cat");
@@ -360,12 +360,12 @@ export async function patchAdminCategory(request: Request, env: Env, categoryId:
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = UpdateCategoryRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    throw new ApiHttpError(400, "invalid_category", parsed.error.issues[0]?.message ?? "Invalid category update.");
+    throw new ApiHttpError(400, "invalid_category", parsed.error.issues[0]?.message ?? "კატეგორიის განახლება ვერ მოხერხდა.");
   }
 
   const fields: string[] = [];
@@ -385,7 +385,7 @@ export async function patchAdminCategory(request: Request, env: Env, categoryId:
   }
 
   if (fields.length === 0) {
-    throw new ApiHttpError(400, "no_fields", "No valid fields provided.");
+    throw new ApiHttpError(400, "no_fields", "ვერცერთი ცვლადი ველი არ არის მითითებული.");
   }
 
   fields.push("updated_at = ?");
@@ -397,7 +397,7 @@ export async function patchAdminCategory(request: Request, env: Env, categoryId:
     .run();
 
   if (result.meta.changes === 0) {
-    throw new ApiHttpError(404, "category_not_found", "Category not found.");
+    throw new ApiHttpError(404, "category_not_found", "კატეგორია ვერ მოიძებნა.");
   }
 
   return jsonResponse({ ok: true });
@@ -410,19 +410,19 @@ export async function postAdminMenuItem(request: Request, env: Env): Promise<Res
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = CreateMenuItemRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    throw new ApiHttpError(400, "invalid_item", parsed.error.issues[0]?.message ?? "Invalid menu item.");
+    throw new ApiHttpError(400, "invalid_item", parsed.error.issues[0]?.message ?? "მენიუს პროდუქტი არასწორია.");
   }
 
   const category = await env.DB.prepare(`SELECT id FROM menu_categories WHERE id = ?`)
     .bind(parsed.data.categoryId)
     .first();
   if (!category) {
-    throw new ApiHttpError(400, "unknown_category", "That category does not exist.");
+    throw new ApiHttpError(400, "unknown_category", "ეს კატეგორია არ არსებობს.");
   }
 
   const id = newId("item");
@@ -476,12 +476,12 @@ export async function patchAdminMenuItem(request: Request, env: Env, itemId: str
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = UpdateMenuItemRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    throw new ApiHttpError(400, "invalid_item", parsed.error.issues[0]?.message ?? "Invalid menu item update.");
+    throw new ApiHttpError(400, "invalid_item", parsed.error.issues[0]?.message ?? "მენიუს პროდუქტის განახლება ვერ მოხერხდა.");
   }
 
   const fields: string[] = [];
@@ -521,7 +521,7 @@ export async function patchAdminMenuItem(request: Request, env: Env, itemId: str
   }
 
   if (fields.length === 0) {
-    throw new ApiHttpError(400, "no_fields", "No valid fields provided.");
+    throw new ApiHttpError(400, "no_fields", "ვერცერთი ცვლადი ველი არ არის მითითებული.");
   }
 
   fields.push("updated_at = ?");
@@ -533,7 +533,7 @@ export async function patchAdminMenuItem(request: Request, env: Env, itemId: str
     .run();
 
   if (result.meta.changes === 0) {
-    throw new ApiHttpError(404, "item_not_found", "Menu item not found.");
+    throw new ApiHttpError(404, "item_not_found", "მენიუს პროდუქტი ვერ მოიძებნა.");
   }
 
   return jsonResponse({ ok: true });
@@ -558,7 +558,7 @@ export async function postAdminMenuImage(request: Request, env: Env): Promise<Re
 
   const contentLength = Number(request.headers.get("Content-Length") ?? "0");
   if (contentLength > MAX_IMAGE_BYTES) {
-    throw new ApiHttpError(400, "image_too_large", "Image must be under 5 MB.");
+    throw new ApiHttpError(400, "image_too_large", "სურათი უნდა იყოს 5 მბ-ზე ნაკლები.");
   }
 
   const extension = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
@@ -566,7 +566,7 @@ export async function postAdminMenuImage(request: Request, env: Env): Promise<Re
 
   const body = await request.arrayBuffer();
   if (body.byteLength > MAX_IMAGE_BYTES) {
-    throw new ApiHttpError(400, "image_too_large", "Image must be under 5 MB.");
+    throw new ApiHttpError(400, "image_too_large", "სურათი უნდა იყოს 5 მბ-ზე ნაკლები.");
   }
 
   await env.MENU_IMAGES.put(key, body, {

@@ -67,7 +67,7 @@ export async function createOrder(
   ).first<RestaurantSettingsRow>();
 
   if (!settings) {
-    throw new ApiHttpError(500, "settings_missing", "Restaurant settings not configured.");
+    throw new ApiHttpError(500, "settings_missing", "რესტორნის პარამეტრები არ არის კონფიგურირებული.");
   }
 
   if (existing) {
@@ -87,19 +87,19 @@ export async function createOrder(
   }
 
   if (!settings.accepting_orders) {
-    throw new ApiHttpError(409, "not_accepting_orders", "Cafe Lile is not accepting orders right now.");
+    throw new ApiHttpError(409, "not_accepting_orders", "კაფე ლილე ამჟამად არ იღებს შეკვეთებს.");
   }
 
   // Delivery orders must include a pinned location (address + coordinates from the map picker).
   if (body.fulfillmentMethod === "delivery" && !body.deliveryLocation) {
-    throw new ApiHttpError(400, "missing_delivery_location", "Please pin a delivery location on the map.");
+    throw new ApiHttpError(400, "missing_delivery_location", "გთხოვთ, მონიშნოთ მიტანის მისამართი რუკაზე.");
   }
 
   // 2. Reject duplicate item ids in the request body.
   const seenIds = new Set<string>();
   for (const line of body.lines) {
     if (seenIds.has(line.menuItemId)) {
-      throw new ApiHttpError(400, "duplicate_line_item", "Each item may only appear once; increase quantity instead.");
+      throw new ApiHttpError(400, "duplicate_line_item", "თითოეული პროდუქტი შეიძლება მხოლოდ ერთხელ იყოს მითითებული — გაზარდეთ რაოდენობა.");
     }
     seenIds.add(line.menuItemId);
   }
@@ -132,10 +132,10 @@ export async function createOrder(
   for (const line of body.lines) {
     const item = canonicalById.get(line.menuItemId);
     if (!item || item.isArchived) {
-      throw new ApiHttpError(400, "unknown_item", `Item ${line.menuItemId} does not exist.`);
+      throw new ApiHttpError(400, "unknown_item", `პროდუქტი ${line.menuItemId} არ არსებობს.`);
     }
     if (!item.isAvailable) {
-      throw new ApiHttpError(409, "item_unavailable", `${item.name} is currently unavailable.`);
+      throw new ApiHttpError(409, "item_unavailable", `${item.name} ამჟამად მიუწვდომელია.`);
     }
   }
 
@@ -235,7 +235,7 @@ export async function updateOrderStatus(env: Env, orderId: string, nextStatus: O
     .first<{ status: OrderStatus }>();
 
   if (!order) {
-    throw new ApiHttpError(404, "order_not_found", "Order not found.");
+    throw new ApiHttpError(404, "order_not_found", "შეკვეთა ვერ მოიძებნა.");
   }
 
   const allowed = ALLOWED_TRANSITIONS[order.status];

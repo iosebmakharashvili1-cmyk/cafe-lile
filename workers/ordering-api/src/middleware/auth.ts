@@ -10,12 +10,12 @@ export interface AuthedContext {
 export async function requireAdminSession(request: Request, env: Env): Promise<AuthedContext> {
   const rawToken = readSessionCookie(request);
   if (!rawToken) {
-    throw new ApiHttpError(401, "unauthenticated", "Sign in required.");
+    throw new ApiHttpError(401, "unauthenticated", "საჭიროა ავტორიზაცია.");
   }
 
   const session = await validateSession(env, rawToken);
   if (!session) {
-    throw new ApiHttpError(401, "session_invalid", "Session expired or invalid. Please sign in again.");
+    throw new ApiHttpError(401, "session_invalid", "სესია ვადაგასულია. გთხოვთ, ხელახლა შეხვიდეთ.");
   }
 
   return { adminUserId: session.adminUserId, displayName: session.displayName };

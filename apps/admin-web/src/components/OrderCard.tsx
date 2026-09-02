@@ -13,10 +13,10 @@ interface OrderCardProps {
 }
 
 const ADVANCE_LABEL: Partial<Record<OrderStatus, string>> = {
-  accepted: "Accept",
-  preparing: "Start preparing",
-  ready: "Mark ready",
-  completed: "Complete",
+  accepted: "მიღება",
+  preparing: "მომზადება დაწყებულია",
+  ready: "მზადაა",
+  completed: "დასრულებულია",
 };
 
 export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardProps) {
@@ -53,7 +53,7 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
             letterSpacing: "0.02em",
           }}
         >
-          NEW ORDER
+          ახალი შეკვეთა
         </motion.div>
       )}
 
@@ -81,7 +81,7 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
           color: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-deep)" : "var(--color-ink-soft)",
         }}
       >
-        {order.fulfillmentMethod === "delivery" ? "DELIVERY" : "PICKUP"}
+        {order.fulfillmentMethod === "delivery" ? "მიტანა" : "აღება"}
       </div>
 
       {order.fulfillmentMethod === "delivery" && order.deliveryAddress && (
@@ -96,7 +96,7 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
                 rel="noreferrer"
                 style={{ color: "var(--color-yellow-deep)", fontWeight: 600 }}
               >
-                View map
+                რუკაზე ნახვა
               </a>
             </>
           )}
@@ -121,14 +121,14 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
                   marginTop: 1,
                 }}
               >
-                ✕ without {item.excludedIngredients.join(", ")}
+                ✕ გარეშე: {item.excludedIngredients.join(", ")}
               </div>
             )}
           </div>
         ))}
         {order.deliveryFeeMinor > 0 && (
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 3 }}>
-            <span>Delivery fee</span>
+            <span>მიტანის საფასური</span>
             <span style={{ color: "var(--color-ink-soft)" }}>{formatPrice(order.deliveryFeeMinor, order.currencyCode)}</span>
           </div>
         )}

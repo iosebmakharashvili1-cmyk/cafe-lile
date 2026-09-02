@@ -14,7 +14,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     const code = body?.error?.code ?? "unknown_error";
-    const message = body?.error?.message ?? "Something went wrong. Please try again.";
+    const message = body?.error?.message ?? "დაფიქსირდა შეცდომა. გთხოვთ, სცადოთ თავიდან.";
     throw new ApiError(code, message);
   }
   return res.json();

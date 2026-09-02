@@ -21,7 +21,7 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
       const session = await login({ username, password });
       onLoggedIn(session.displayName);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Sign-in failed. Try again.");
+      setError(err instanceof ApiError ? err.message : "შესვლა ვერ მოხერხდა. სცადეთ თავიდან.");
     } finally {
       setSubmitting(false);
     }
@@ -68,12 +68,12 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
         >
           CL
         </div>
-        <h1 style={{ fontSize: 22, marginBottom: 4 }}>Staff sign in</h1>
+        <h1 style={{ fontSize: 22, marginBottom: 4 }}>პერსონალის შესვლა</h1>
         <p style={{ color: "var(--color-ink-soft)", fontSize: 13.5, marginBottom: 24 }}>
-          Cafe Lile order management
+          კაფე ლილეს შეკვეთების მართვა
         </p>
 
-        <label style={labelStyle}>Username</label>
+        <label style={labelStyle}>მომხმარებლის სახელი</label>
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -82,7 +82,7 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
           autoFocus
         />
 
-        <label style={{ ...labelStyle, marginTop: 14 }}>Password</label>
+        <label style={{ ...labelStyle, marginTop: 14 }}>პაროლი</label>
         <div style={{ position: "relative" }}>
           <input
             type={showPassword ? "text" : "password"}
@@ -94,9 +94,9 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? "პაროლის დამალვა" : "პაროლის ჩვენება"}
             aria-pressed={showPassword}
-            title={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "პაროლის დამალვა" : "პაროლის ჩვენება"}
             style={{
               position: "absolute",
               right: 6,
@@ -153,10 +153,10 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
         >
           {isSubmitting ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
-              <span className="spinner" aria-hidden="true" /> Signing in…
+              <span className="spinner" aria-hidden="true" /> შესვლა…
             </span>
           ) : (
-            "Sign in"
+            "შესვლა"
           )}
         </motion.button>
       </motion.form>

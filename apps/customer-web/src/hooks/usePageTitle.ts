@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
 const TITLES: Record<string, string> = {
-  menu: "Cafe Lile — Order pickup or delivery in Mukhrani",
-  checkout: "Checkout — Cafe Lile",
-  confirmation: "Order placed — Cafe Lile",
+  menu: "კაფე ლილე — შეკვეთა მუხრანში, აღება ან მიტანა",
+  checkout: "შეკვეთის გაფორმება — კაფე ლილე",
+  confirmation: "შეკვეთა განთავსებულია — კაფე ლილე",
 };
 
 /** Keeps the browser tab title in sync with the current screen. */

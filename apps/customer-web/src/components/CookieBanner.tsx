@@ -40,7 +40,7 @@ export function CookieBanner() {
           exit={{ y: 90, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           role="region"
-          aria-label="Cookie notice"
+          aria-label="ქუქი-ფაილების შესახებ შეტყობინება"
           style={{
             position: "fixed",
             left: 12,

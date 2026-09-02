@@ -70,10 +70,10 @@ export function MenuPage() {
   return (
     <div style={{ padding: "20px 24px", maxWidth: 720 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20 }}>Menu</h2>
+        <h2 style={{ fontSize: 20 }}>მენიუ</h2>
         {!isAddingCategory && (
           <button onClick={() => setAddingCategory(true)} style={secondaryButtonStyle}>
-            + Add category
+            + კატეგორიის დამატება
           </button>
         )}
       </div>
@@ -84,7 +84,7 @@ export function MenuPage() {
 
       {categories.length === 0 && !isAddingCategory && (
         <p style={{ color: "var(--color-ink-soft)", fontSize: 14 }}>
-          No categories yet. Add your first category to start building the menu.
+          ჯერ არ არის კატეგორია. დაამატეთ პირველი კატეგორია მენიუს შესაქმნელად.
         </p>
       )}
 
@@ -99,7 +99,7 @@ export function MenuPage() {
                   onClick={() => setAddingItemToCategory(category.id)}
                   style={{ ...secondaryButtonStyle, padding: "6px 12px", fontSize: 12.5 }}
                 >
-                  + Add item
+                  + პროდუქტის დამატება
                 </button>
               )}
             </div>
@@ -112,7 +112,7 @@ export function MenuPage() {
             )}
 
             {categoryItems.length === 0 ? (
-              <p style={{ color: "var(--color-ink-soft)", fontSize: 13, padding: "4px 0" }}>No items yet.</p>
+              <p style={{ color: "var(--color-ink-soft)", fontSize: 13, padding: "4px 0" }}>ჯერ არ არის პროდუქტი.</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {categoryItems.map((item) => (
@@ -176,11 +176,11 @@ export function MenuPage() {
                         background: item.isAvailable ? "var(--color-yellow-tint)" : "var(--color-line)",
                       }}
                     >
-                      {item.isAvailable ? "Available" : "Unavailable"}
+                      {item.isAvailable ? "ხელმისაწვდომია" : "მიუწვდომელია"}
                     </button>
                     <button
                       onClick={() => handleArchive(item)}
-                      aria-label={`Remove ${item.name}`}
+                      aria-label={`${item.name}-ის წაშლა`}
                       style={{
                         border: "none",
                         background: "transparent",
@@ -191,7 +191,7 @@ export function MenuPage() {
                         padding: "6px 4px",
                       }}
                     >
-                      Remove
+                      წაშლა
                     </button>
                   </div>
                 ))}
@@ -223,7 +223,7 @@ function QuickAddCategory({ onSubmit, onCancel }: { onSubmit: (name: string) => 
         autoFocus
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Category name (e.g. Coffee)"
+        placeholder="კატეგორიის სახელი (მაგ. ყავა)"
         style={{ ...inputStyle, flex: 1 }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && name.trim()) onSubmit(name.trim());
@@ -235,10 +235,10 @@ function QuickAddCategory({ onSubmit, onCancel }: { onSubmit: (name: string) => 
         disabled={!name.trim()}
         style={primaryButtonStyle}
       >
-        Add
+        დამატება
       </button>
       <button onClick={onCancel} style={secondaryButtonStyle}>
-        Cancel
+        გაუქმება
       </button>
     </motion.div>
   );
@@ -298,11 +298,11 @@ function QuickAddItem({
     if (!file) return;
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setUploadError("Use a JPEG, PNG, or WebP image.");
+      setUploadError("გამოიყენეთ JPEG, PNG ან WebP ფორმატის სურათი.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError("Image must be under 5 MB.");
+      setUploadError("სურათი უნდა იყოს 5 მბ-ზე ნაკლები.");
       return;
     }
 
@@ -312,7 +312,7 @@ function QuickAddItem({
       const result = await uploadMenuImage(file);
       setImageUrl(result.imageUrl);
     } catch {
-      setUploadError("Upload failed. Try again.");
+      setUploadError("ატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.");
     } finally {
       setUploading(false);
     }
@@ -340,13 +340,13 @@ function QuickAddItem({
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Item name"
+              placeholder="პროდუქტის სახელი"
               style={{ ...inputStyle, flex: 2 }}
             />
             <input
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="Price (GEL)"
+              placeholder="ფასი (₾)"
               type="number"
               step="0.01"
               min="0"
@@ -356,14 +356,14 @@ function QuickAddItem({
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
+            placeholder="აღწერა (არასავალდებულო)"
             style={inputStyle}
           />
           <div style={{ display: "flex", gap: 8 }}>
             <input
               value={ingredientInput}
               onChange={(e) => setIngredientInput(e.target.value)}
-              placeholder="Add an ingredient (e.g. tomato)"
+              placeholder="ინგრედიენტის დამატება (მაგ. პომიდორი)"
               style={{ ...inputStyle, flex: 1 }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -374,7 +374,7 @@ function QuickAddItem({
               }}
             />
             <button onClick={addIngredient} disabled={!ingredientInput.trim()} style={secondaryButtonStyle}>
-              + Add ingredient
+              + ინგრედიენტის დამატება
             </button>
           </div>
           {ingredients.length > 0 && (
@@ -397,7 +397,7 @@ function QuickAddItem({
                   {ing}
                   <button
                     onClick={() => removeIngredient(ing)}
-                    aria-label={`Remove ${ing}`}
+                    aria-label={`${ing}-ის წაშლა`}
                     style={{
                       border: "none",
                       background: "transparent",
@@ -423,10 +423,10 @@ function QuickAddItem({
 
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={submit} disabled={!canSubmit} style={primaryButtonStyle}>
-          Add item
+          პროდუქტის დამატება
         </button>
         <button onClick={onCancel} style={secondaryButtonStyle}>
-          Cancel
+          გაუქმება
         </button>
       </div>
     </motion.div>

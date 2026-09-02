@@ -49,8 +49,8 @@ export function CheckoutForm({
     (method === "pickup" || (address.trim().length > 0 && pin !== null));
 
   // Inline field errors appear only once a field has been touched.
-  const nameError = touched.name && name.trim().length === 0 ? "Please tell us your name." : null;
-  const phoneError = touched.phone && phone.trim().length < 4 ? "Enter a phone number we can reach you on." : null;
+  const nameError = touched.name && name.trim().length === 0 ? "გთხოვთ მიუთითოთ თქვენი სახელი." : null;
+  const phoneError = touched.phone && phone.trim().length < 4 ? "მიუთითეთ ტელეფონის ნომერი დასაკავშირებლად." : null;
 
   return (
     <div style={{ padding: "24px 20px", maxWidth: 480, margin: "0 auto" }}>
@@ -58,34 +58,34 @@ export function CheckoutForm({
         onClick={onBack}
         style={{ border: "none", background: "none", color: "var(--color-ink-soft)", cursor: "pointer", fontSize: 14, marginBottom: 20, padding: 0 }}
       >
-        ← Back to menu
+        ← მენიუში დაბრუნება
       </button>
 
-      <h2 style={{ fontSize: 24, marginBottom: 20 }}>Checkout</h2>
+      <h2 style={{ fontSize: 24, marginBottom: 20 }}>შეკვეთის გაფორმება</h2>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        <MethodTab label="Pickup" active={method === "pickup"} onClick={() => setMethod("pickup")} />
-        <MethodTab label="Delivery" active={method === "delivery"} onClick={() => setMethod("delivery")} />
+        <MethodTab label="აღება" active={method === "pickup"} onClick={() => setMethod("pickup")} />
+        <MethodTab label="მიტანა" active={method === "delivery"} onClick={() => setMethod("delivery")} />
       </div>
 
-      <Field label="Your name" error={nameError}>
+      <Field label="თქვენი სახელი" error={nameError}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-          placeholder="Full name"
+          placeholder="სრული სახელი"
           maxLength={80}
           aria-invalid={nameError ? true : undefined}
           style={{ ...inputStyle, ...(nameError ? inputErrorStyle : null) }}
         />
       </Field>
 
-      <Field label="Phone number" error={phoneError}>
+      <Field label="ტელეფონის ნომერი" error={phoneError}>
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
-          placeholder="Required — for order updates"
+          placeholder="სავალდებულოა — შეკვეთის შესახებ დასაკავშირებლად"
           maxLength={30}
           style={inputStyle}
           type="tel"
@@ -95,16 +95,16 @@ export function CheckoutForm({
 
       {method === "delivery" && (
         <>
-          <Field label="Delivery address">
+          <Field label="მიტანის მისამართი">
             <input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Street, building, apartment"
+              placeholder="ქუჩა, კორპუსი, ბინა"
               maxLength={240}
               style={inputStyle}
             />
           </Field>
-          <Field label="Pin your location">
+          <Field label="მონიშნეთ თქვენი მდებარეობა">
             <DeliveryMapPicker value={pin} onChange={setPin} />
             {zoneInfo && (
               <div
@@ -116,19 +116,19 @@ export function CheckoutForm({
                 }}
               >
                 {zoneInfo.zone
-                  ? `Delivering to ${zoneInfo.zone.name} — ${formatPrice(zoneInfo.feeMinor, currencyCode)}`
-                  : `Outside our usual villages — ${formatPrice(zoneInfo.feeMinor, currencyCode)} (we'll confirm by phone)`}
+                  ? `მიტანა: ${zoneInfo.zone.name} — ${formatPrice(zoneInfo.feeMinor, currencyCode)}`
+                  : `ჩვენი სოფლების გარეთ — ${formatPrice(zoneInfo.feeMinor, currencyCode)} (დავუკავშირდებით ტელეფონით)`}
               </div>
             )}
           </Field>
         </>
       )}
 
-      <Field label="Note (optional)">
+      <Field label="შენიშვნა (არასავალდებულო)">
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Anything the kitchen should know"
+          placeholder="რაც სამზარეულომ უნდა იცოდეს"
           maxLength={280}
           rows={3}
           style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
@@ -145,13 +145,13 @@ export function CheckoutForm({
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
-          <span>Subtotal</span>
+          <span>ჯამი (პროდუქტები)</span>
           <span>{formatPrice(subtotalMinor, currencyCode)}</span>
         </div>
         {method === "delivery" && (
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
-            <span>Delivery fee{zoneInfo?.zone ? ` (${zoneInfo.zone.name})` : ""}</span>
-            <span>{zoneInfo ? formatPrice(deliveryFeeMinor, currencyCode) : "pick a pin"}</span>
+            <span>მიტანის საფასური{zoneInfo?.zone ? ` (${zoneInfo.zone.name})` : ""}</span>
+            <span>{zoneInfo ? formatPrice(deliveryFeeMinor, currencyCode) : "აირჩიეთ მდებარეობა"}</span>
           </div>
         )}
         <div
@@ -165,11 +165,11 @@ export function CheckoutForm({
             borderTop: "1px solid rgba(33,28,18,0.1)",
           }}
         >
-          <span>Total</span>
+          <span>სულ ჯამი</span>
           <span>{formatPrice(totalMinor, currencyCode)}</span>
         </div>
         <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8 }}>
-          Payment is cash, due at {method === "pickup" ? "pickup" : "delivery"}.
+          გადახდა ნაღდი ფულით, {method === "pickup" ? "აღებისას" : "მიტანისას"}.
         </div>
       </div>
 
@@ -221,10 +221,10 @@ export function CheckoutForm({
       >
         {isSubmitting ? (
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
-            <span className="spinner" aria-hidden="true" /> Placing order…
+            <span className="spinner" aria-hidden="true" /> შეკვეთის გაფორმება…
           </span>
         ) : (
-          "Place order"
+          "შეკვეთის განთავსება"
         )}
       </motion.button>
     </div>

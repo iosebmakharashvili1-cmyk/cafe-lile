@@ -24,8 +24,8 @@ export function ThemeToggle() {
       data-print-hide
       onClick={toggle}
       className="icon-btn"
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      title={theme === "dark" ? "Light mode" : "Dark mode"}
+      aria-label={theme === "dark" ? "ღია რეჟიმზე გადართვა" : "მუქ რეჟიმზე გადართვა"}
+      title={theme === "dark" ? "ღია რეჟიმი" : "მუქი რეჟიმი"}
       style={{
         position: "fixed",
         top: 14,

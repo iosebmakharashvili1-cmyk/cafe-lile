@@ -195,7 +195,7 @@ export function ItemDetailModal({
               >
                 <button
                   onClick={() => onDecrement(item.id, excluded)}
-                  aria-label="Remove one"
+                  aria-label="ერთი ცალის მოხსნა"
                   style={quantityButtonStyle}
                 >
                   −
@@ -203,7 +203,7 @@ export function ItemDetailModal({
                 <span style={{ fontWeight: 700, fontSize: 17, minWidth: 20, textAlign: "center" }}>{quantity}</span>
                 <button
                   onClick={() => onAdd(item.id, excluded)}
-                  aria-label="Add one more"
+                  aria-label="კიდევ ერთი ცალის დამატება"
                   style={quantityButtonStyle}
                 >
                   +

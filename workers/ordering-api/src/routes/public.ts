@@ -31,7 +31,7 @@ export async function getPublicMenu(env: Env): Promise<Response> {
   }>();
 
   if (!settings) {
-    throw new ApiHttpError(500, "settings_missing", "Restaurant settings not configured.");
+    throw new ApiHttpError(500, "settings_missing", "რესტორნის პარამეტრები არ არის კონფიგურირებული.");
   }
 
   const { results: categories } = await env.DB.prepare(
@@ -89,19 +89,19 @@ export async function getPublicMenu(env: Env): Promise<Response> {
 export async function postPublicOrder(request: Request, env: Env): Promise<Response> {
   const idempotencyKey = request.headers.get("Idempotency-Key");
   if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 200) {
-    throw new ApiHttpError(400, "missing_idempotency_key", "A valid Idempotency-Key header is required.");
+    throw new ApiHttpError(400, "missing_idempotency_key", "საჭიროა Idempotency-Key სათაური.");
   }
 
   let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
-    throw new ApiHttpError(400, "invalid_json", "Request body must be valid JSON.");
+    throw new ApiHttpError(400, "invalid_json", "მოთხოვნის ფორმატი არასწორია.");
   }
 
   const parsed = CreateOrderRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
-    throw new ApiHttpError(400, "invalid_order", parsed.error.issues[0]?.message ?? "Invalid order payload.");
+    throw new ApiHttpError(400, "invalid_order", parsed.error.issues[0]?.message ?? "შეკვეთის მონაცემები არასწორია.");
   }
 
   // Delivery-location requirement for delivery orders is enforced inside createOrder().
