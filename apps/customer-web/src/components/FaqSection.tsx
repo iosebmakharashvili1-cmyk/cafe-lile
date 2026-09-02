@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { Plus } from "lucide-react";
 
 interface FaqSectionProps {
   /** Restaurant's default prep time, shown in the "how long" answer. */
@@ -82,7 +83,7 @@ export function FaqSection({ prepMinutes = 20 }: FaqSectionProps) {
                     fontSize: 17,
                   }}
                 >
-                  +
+                  <Plus size={17} />
                 </span>
               </button>
               <AnimatePresence initial={false}>

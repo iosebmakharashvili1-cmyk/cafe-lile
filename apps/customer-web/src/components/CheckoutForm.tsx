@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import type { FulfillmentMethod } from "@cafe-lile/contracts";
+import type { FulfillmentMethod, PaymentMethod } from "@cafe-lile/contracts";
+import { PAYMENT_METHOD_LABELS } from "@cafe-lile/contracts";
 import { resolveDeliveryZone } from "@cafe-lile/contracts";
+import { Banknote, CreditCard } from "lucide-react";
 import { formatPrice } from "../lib/format";
 import { DeliveryMapPicker, type PickedLocation } from "./DeliveryMapPicker";
 
@@ -15,6 +17,7 @@ interface CheckoutFormProps {
     customerPhone: string;
     customerNote?: string;
     fulfillmentMethod: FulfillmentMethod;
+    paymentMethod: PaymentMethod;
     deliveryLocation?: { address: string; latitude: number; longitude: number };
   }) => void;
   onBack: () => void;
@@ -32,6 +35,7 @@ export function CheckoutForm({
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [method, setMethod] = useState<FulfillmentMethod>("pickup");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [address, setAddress] = useState("");
   const [pin, setPin] = useState<PickedLocation | null>(null);
   const [touched, setTouched] = useState<{ name: boolean; phone: boolean }>({ name: false, phone: false });
@@ -135,6 +139,40 @@ export function CheckoutForm({
         />
       </Field>
 
+      <Field label="გადახდის მეთოდი">
+        <div style={{ display: "flex", gap: 8 }}>
+          <PaymentMethodTab
+            label={PAYMENT_METHOD_LABELS.cash}
+            icon={<Banknote size={16} />}
+            active={paymentMethod === "cash"}
+            onClick={() => setPaymentMethod("cash")}
+          />
+          <PaymentMethodTab
+            label={PAYMENT_METHOD_LABELS.card}
+            icon={<CreditCard size={16} />}
+            active={paymentMethod === "card"}
+            onClick={() => setPaymentMethod("card")}
+          />
+        </div>
+        {paymentMethod === "card" && (
+          <div
+            style={{
+              marginTop: 10,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 14px",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-sm)",
+            }}>
+            <span style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginRight: 4 }}>მივიღებთ:</span>
+            <BogLogo />
+            <TbcLogo />
+          </div>
+        )}
+      </Field>
+
       <div
         style={{
           background: "var(--color-yellow-tint)",
@@ -168,8 +206,12 @@ export function CheckoutForm({
           <span>სულ ჯამი</span>
           <span>{formatPrice(totalMinor, currencyCode)}</span>
         </div>
-        <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8 }}>
-          გადახდა ნაღდი ფულით, {method === "pickup" ? "აღებისას" : "მიტანისას"}.
+        <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}>
+          {paymentMethod === "card" ? (
+            <><CreditCard size={14} /> გადახდა ბარათით, {method === "pickup" ? "აღებისას" : "მიტანისას"}.</>
+          ) : (
+            <><Banknote size={14} /> გადახდა ნაღდი ფულით, {method === "pickup" ? "აღებისას" : "მიტანისას"}.</>
+          )}
         </div>
       </div>
 
@@ -201,6 +243,7 @@ export function CheckoutForm({
             customerPhone: phone.trim(),
             customerNote: note.trim() || undefined,
             fulfillmentMethod: method,
+            paymentMethod,
             deliveryLocation:
               method === "delivery" && pin
                 ? { address: address.trim(), latitude: pin.latitude, longitude: pin.longitude }
@@ -282,3 +325,53 @@ const inputStyle: React.CSSProperties = {
   background: "var(--color-surface)",
   color: "var(--color-ink)",
 };
+
+function PaymentMethodTab({ label, icon, active, onClick }: { label: string; icon: React.ReactNode; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        padding: "10px",
+        borderRadius: "var(--radius-sm)",
+        border: active ? "1.5px solid var(--color-yellow-deep)" : "1.5px solid var(--color-line)",
+        background: active ? "var(--color-yellow-tint)" : "var(--color-surface)",
+        fontWeight: 600,
+        fontSize: 13,
+        cursor: "pointer",
+        color: "var(--color-ink)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/** Bank of Georgia logo */
+function BogLogo() {
+  return (
+    <svg width="48" height="20" viewBox="0 0 48 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="20" rx="3" fill="#333940" />
+      <text x="7" y="14" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="11" fill="#E8A600" letterSpacing="0.5">
+        BOG
+      </text>
+    </svg>
+  );
+}
+
+/** TBC Bank logo */
+function TbcLogo() {
+  return (
+    <svg width="44" height="20" viewBox="0 0 44 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="44" height="20" rx="3" fill="#E31E24" />
+      <text x="7" y="14" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="11" fill="#fff" letterSpacing="0.5">
+        TBC
+      </text>
+    </svg>
+  );
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
+import { Eye, EyeOff } from "lucide-react";
 import { login, ApiError } from "../lib/api";
 
 interface LoginPageProps {
@@ -115,7 +116,7 @@ export function LoginPage({ onLoggedIn }: LoginPageProps) {
               color: "var(--color-ink-soft)",
             }}
           >
-            {showPassword ? "🙈" : "👁"}
+            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
         </div>
 

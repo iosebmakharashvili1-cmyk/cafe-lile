@@ -103,7 +103,8 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
   const { results: orders } = await env.DB.prepare(
     `SELECT id, reference, status, customer_name as customerName, customer_phone as customerPhone,
             customer_note as customerNote, currency_code as currencyCode,
-            fulfillment_method as fulfillmentMethod, delivery_address as deliveryAddress,
+            fulfillment_method as fulfillmentMethod, payment_method as paymentMethod,
+            delivery_address as deliveryAddress,
             delivery_latitude as deliveryLatitude, delivery_longitude as deliveryLongitude,
             subtotal_minor as subtotalMinor, delivery_fee_minor as deliveryFeeMinor,
             total_minor as totalMinor, placed_at as placedAt, updated_at as updatedAt
@@ -118,6 +119,7 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
     customerPhone: string | null;
     customerNote: string | null;
     fulfillmentMethod: string;
+    paymentMethod: string;
     deliveryAddress: string | null;
     deliveryLatitude: number | null;
     deliveryLongitude: number | null;
@@ -170,6 +172,7 @@ export async function getAdminActiveOrders(request: Request, env: Env): Promise<
       customerPhone: o.customerPhone,
       customerNote: o.customerNote,
       fulfillmentMethod: o.fulfillmentMethod,
+      paymentMethod: o.paymentMethod,
       deliveryAddress: o.deliveryAddress,
       deliveryLatitude: o.deliveryLatitude,
       deliveryLongitude: o.deliveryLongitude,

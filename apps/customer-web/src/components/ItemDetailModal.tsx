@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { MenuItem } from "@cafe-lile/contracts";
+import { X } from "lucide-react";
 import { formatPrice } from "../lib/format";
 
 interface ItemDetailModalProps {
@@ -100,7 +101,7 @@ export function ItemDetailModal({
               boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
             }}
           >
-            ✕
+            <X size={16} />
           </button>
 
           <div style={{ padding: "20px 24px 28px" }}>

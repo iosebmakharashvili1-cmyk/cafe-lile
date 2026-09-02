@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { Menu, X } from "lucide-react";
 
 interface NavBarProps {
   displayName: string;
@@ -111,7 +112,7 @@ export function NavBar({ displayName, activeTab, onTabChange, onLogout }: NavBar
             justifyContent: "center",
           }}
         >
-          {mobileMenuOpen ? "✕" : "☰"}
+          {mobileMenuOpen ? <X size={17} /> : <Menu size={17} />}
         </button>
       </header>
 

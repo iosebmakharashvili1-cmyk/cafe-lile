@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 import { applyTheme, getInitialTheme, saveTheme, type Theme } from "../lib/theme";
 
 /** Light/dark toggle. Persists the choice and defaults to the OS preference. */
@@ -46,7 +47,7 @@ export function ThemeToggle() {
         boxShadow: "0 1px 6px rgba(33, 28, 18, 0.15)",
       }}
     >
-      {theme === "dark" ? "☀️" : "🌙"}
+      {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
     </button>
   );
 }

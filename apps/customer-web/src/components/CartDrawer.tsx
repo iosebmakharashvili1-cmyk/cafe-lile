@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import type { MenuItem } from "@cafe-lile/contracts";
+import { X } from "lucide-react";
 import { formatPrice } from "../lib/format";
 import { cartLineKey, type CartLine } from "../hooks/useCart";
 
@@ -93,7 +94,7 @@ export function CartDrawer({
                   padding: 4,
                 }}
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
