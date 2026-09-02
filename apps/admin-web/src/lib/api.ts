@@ -2,6 +2,7 @@ import type {
   AdminLoginRequest,
   AdminSessionInfo,
   OrderStatus,
+  PaymentMethod,
 } from "@cafe-lile/contracts";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
@@ -68,6 +69,7 @@ export interface AdminOrderRow {
   customerPhone: string | null;
   customerNote: string | null;
   fulfillmentMethod: "pickup" | "delivery";
+  paymentMethod: PaymentMethod;
   deliveryAddress: string | null;
   deliveryLatitude: number | null;
   deliveryLongitude: number | null;
@@ -87,6 +89,7 @@ export async function getActiveOrders(): Promise<{ orders: AdminOrderRow[] }> {
   return {
     orders: (res.orders ?? []).map((o) => ({
       ...o,
+      paymentMethod: o.paymentMethod ?? "cash",
       items: (o.items ?? []).map((i) => ({
         ...i,
         excludedIngredients: Array.isArray(i.excludedIngredients) ? i.excludedIngredients : [],

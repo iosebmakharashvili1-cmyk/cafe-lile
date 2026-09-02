@@ -82,6 +82,7 @@ export async function createOrder(
         placedAt: existing.placedAt,
         pickupInstructions: settings.pickup_instructions,
         fulfillmentMethod: body.fulfillmentMethod,
+        paymentMethod: (body.paymentMethod ?? "cash") as "cash" | "card",
       },
     };
   }
@@ -172,6 +173,8 @@ export async function createOrder(
 
   // 5. Persist order header + line items + creation event atomically via D1 batch.
   const eventId = newId("evt");
+  const paymentMethod = body.paymentMethod ?? "cash";
+  const paymentStatus = paymentMethod === "card" ? "unpaid" : "unpaid";
 
   const statements = [
     env.DB.prepare(
@@ -180,13 +183,15 @@ export async function createOrder(
         payment_method, payment_status, currency_code, subtotal_minor,
         delivery_fee_minor, total_minor, fulfillment_method, delivery_address,
         delivery_latitude, delivery_longitude, idempotency_key, placed_at, updated_at
-      ) VALUES (?, ?, 'new', ?, ?, ?, 'cash_pickup', 'unpaid', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       orderId,
       reference,
       body.customerName,
       body.customerPhone,
       body.customerNote ?? null,
+      paymentMethod,
+      paymentStatus,
       settings.currency_code,
       subtotalMinor,
       deliveryFeeMinor,
@@ -225,6 +230,7 @@ export async function createOrder(
       placedAt,
       pickupInstructions: settings.pickup_instructions,
       fulfillmentMethod: body.fulfillmentMethod,
+      paymentMethod,
     },
   };
 }

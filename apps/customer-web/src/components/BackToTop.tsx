@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { ArrowUp } from "lucide-react";
 
 interface BackToTopProps {
   liftedForCartBar?: boolean;
@@ -49,7 +50,7 @@ export function BackToTop({ liftedForCartBar = false }: BackToTopProps) {
             gap: 4,
           }}
         >
-          <span aria-hidden="true">↑</span> top
+          <ArrowUp size={14} aria-hidden="true" /> top
         </motion.button>
       )}
     </AnimatePresence>

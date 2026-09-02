@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@cafe-lile/contracts": "workspace:*",
+    "lucide-react": "^1.39.0",
     "motion": "^11.11.17",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

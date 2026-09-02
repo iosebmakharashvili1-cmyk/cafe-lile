@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 
 interface CopyButtonProps {
   value: string;
@@ -7,7 +8,7 @@ interface CopyButtonProps {
 }
 
 /** Small copy-to-clipboard button with a transient success state. */
-export function CopyButton({ value, label = "კოპირება", copiedLabel = "დაკოპირდა ✓" }: CopyButtonProps) {
+export function CopyButton({ value, label = "კოპირება", copiedLabel }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   // Reset back so the button can be used again after a moment.
@@ -45,7 +46,7 @@ export function CopyButton({ value, label = "კოპირება", copiedLa
         transition: "background 200ms ease, color 200ms ease",
       }}
     >
-      {copied ? copiedLabel : `${label}`}
+      {copied ? (copiedLabel ?? <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Check size={13} /> დაკოპირდა</span>) : `${label}`}
     </button>
   );
 }

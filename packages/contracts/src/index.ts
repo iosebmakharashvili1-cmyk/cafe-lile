@@ -188,6 +188,15 @@ export type OrderLineRequest = z.infer<typeof OrderLineRequestSchema>;
 export const FulfillmentMethodSchema = z.enum(["pickup", "delivery"]);
 export type FulfillmentMethod = z.infer<typeof FulfillmentMethodSchema>;
 
+export const PAYMENT_METHODS = ["cash", "card"] as const;
+export const PaymentMethodSchema = z.enum(PAYMENT_METHODS);
+export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "ნაღდი ფული",
+  card: "ბარათით მიტანისას",
+};
+
 export const DeliveryLocationSchema = z.object({
   address: z.string().trim().min(1).max(240),
   latitude: z.number().min(-90).max(90),
@@ -200,6 +209,7 @@ export const CreateOrderRequestSchema = z.object({
   customerPhone: z.string().trim().min(4).max(30),
   customerNote: z.string().trim().max(280).optional(),
   fulfillmentMethod: FulfillmentMethodSchema,
+  paymentMethod: PaymentMethodSchema.default("cash"),
   deliveryLocation: DeliveryLocationSchema.optional(),
   lines: z.array(OrderLineRequestSchema).min(1).max(40),
 });
@@ -216,6 +226,7 @@ export const CreateOrderResponseSchema = z.object({
     placedAt: z.string(),
     pickupInstructions: z.string(),
     fulfillmentMethod: FulfillmentMethodSchema,
+    paymentMethod: PaymentMethodSchema,
   }),
 });
 export type CreateOrderResponse = z.infer<typeof CreateOrderResponseSchema>;
@@ -241,6 +252,7 @@ export const AdminOrderSchema = z.object({
   customerPhone: z.string().nullable(),
   customerNote: z.string().nullable(),
   fulfillmentMethod: FulfillmentMethodSchema,
+  paymentMethod: PaymentMethodSchema,
   deliveryAddress: z.string().nullable(),
   deliveryLatitude: z.number().nullable(),
   deliveryLongitude: z.number().nullable(),

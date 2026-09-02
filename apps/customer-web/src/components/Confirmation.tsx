@@ -1,5 +1,7 @@
 import { motion } from "motion/react";
 import type { CreateOrderResponse } from "@cafe-lile/contracts";
+import { PAYMENT_METHOD_LABELS } from "@cafe-lile/contracts";
+import { Printer, Check } from "lucide-react";
 import { formatPrice } from "../lib/format";
 import { CopyButton } from "./CopyButton";
 
@@ -27,7 +29,7 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
           fontSize: 28,
         }}
       >
-        ✓
+        <Check size={28} strokeWidth={3} />
       </motion.div>
 
       <h2 style={{ fontSize: 24, marginBottom: 8 }}>შეკვეთა განთავსებულია</h2>
@@ -52,8 +54,8 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
         </div>
         <CopyButton value={order.reference} label="ნომრის კოპირება" />
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(33,28,18,0.1)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-            <span>Total (cash on {order.fulfillmentMethod})</span>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 }}>
+            <span>Total ({PAYMENT_METHOD_LABELS[order.paymentMethod]})</span>
             <span style={{ fontWeight: 700 }}>{formatPrice(order.totalMinor, order.currencyCode)}</span>
           </div>
         </div>
@@ -83,7 +85,7 @@ export function Confirmation({ order, onDone }: ConfirmationProps) {
             cursor: "pointer",
           }}
         >
-          🖨 Print receipt
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Printer size={16} /> Print receipt</span>
         </button>
         <button
           onClick={onDone}

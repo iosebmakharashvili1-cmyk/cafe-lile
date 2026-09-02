@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { X as XIcon } from "lucide-react";
 import {
   getAdminMenu,
   createCategory,
@@ -408,7 +409,7 @@ function QuickAddItem({
                       lineHeight: 1,
                     }}
                   >
-                    ✕
+                    <XIcon size={13} />
                   </button>
                 </span>
               ))}

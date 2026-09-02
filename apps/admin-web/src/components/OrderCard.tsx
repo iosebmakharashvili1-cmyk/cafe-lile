@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import type { OrderStatus } from "@cafe-lile/contracts";
-import { ORDER_STATUS_LABELS, ALLOWED_TRANSITIONS } from "@cafe-lile/contracts";
+import { ORDER_STATUS_LABELS, ALLOWED_TRANSITIONS, PAYMENT_METHOD_LABELS } from "@cafe-lile/contracts";
+import { MapPin, X } from "lucide-react";
 import type { AdminOrderRow } from "../lib/api";
 import { formatPrice } from "../lib/format";
 import { timeAgo } from "../lib/time";
@@ -69,24 +70,38 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
         <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginBottom: 4 }}>{order.customerPhone}</div>
       )}
 
-      <div
-        style={{
-          display: "inline-block",
-          fontSize: 11,
-          fontWeight: 700,
-          padding: "2px 8px",
-          borderRadius: 5,
-          marginBottom: 8,
-          background: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-tint)" : "var(--color-line)",
-          color: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-deep)" : "var(--color-ink-soft)",
-        }}
-      >
-        {order.fulfillmentMethod === "delivery" ? "მიტანა" : "აღება"}
+      <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: 11,
+            fontWeight: 700,
+            padding: "2px 8px",
+            borderRadius: 5,
+            background: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-tint)" : "var(--color-line)",
+            color: order.fulfillmentMethod === "delivery" ? "var(--color-yellow-deep)" : "var(--color-ink-soft)",
+          }}
+        >
+          {order.fulfillmentMethod === "delivery" ? "მიტანა" : "აღება"}
+        </span>
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: 11,
+            fontWeight: 700,
+            padding: "2px 8px",
+            borderRadius: 5,
+            background: order.paymentMethod === "card" ? "var(--color-yellow-tint)" : "var(--color-line)",
+            color: order.paymentMethod === "card" ? "var(--color-yellow-deep)" : "var(--color-ink-soft)",
+          }}
+        >
+          {PAYMENT_METHOD_LABELS[order.paymentMethod]}
+        </span>
       </div>
 
       {order.fulfillmentMethod === "delivery" && order.deliveryAddress && (
         <div style={{ fontSize: 12.5, color: "var(--color-ink-soft)", marginBottom: 8 }}>
-          📍 {order.deliveryAddress}
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><MapPin size={13} /> {order.deliveryAddress}</span>
           {order.deliveryLatitude !== null && order.deliveryLongitude !== null && (
             <>
               {" "}
@@ -121,7 +136,7 @@ export function OrderCard({ order, isNew, onAdvance, onAcknowledge }: OrderCardP
                   marginTop: 1,
                 }}
               >
-                ✕ გარეშე: {item.excludedIngredients.join(", ")}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><X size={12} /> გარეშე: {item.excludedIngredients.join(", ")}</span>
               </div>
             )}
           </div>

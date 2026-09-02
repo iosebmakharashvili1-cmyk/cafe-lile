@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { Phone, MessageCircle, X } from "lucide-react";
 
 // TODO: replace with the cafe's real phone number before launch.
 const CONTACT_PHONE_DISPLAY = "+995 568 00 40 40";
@@ -55,7 +56,7 @@ export function FloatingContact({ liftedForCartBar = false }: FloatingContactPro
                 whiteSpace: "nowrap",
               }}
             >
-              📞 {CONTACT_PHONE_DISPLAY}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><Phone size={14} /> {CONTACT_PHONE_DISPLAY}</span>
             </a>
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}`}
@@ -74,7 +75,7 @@ export function FloatingContact({ liftedForCartBar = false }: FloatingContactPro
                 whiteSpace: "nowrap",
               }}
             >
-              💬 WhatsApp us
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><MessageCircle size={14} /> WhatsApp us</span>
             </a>
           </motion.div>
         )}
@@ -100,7 +101,7 @@ export function FloatingContact({ liftedForCartBar = false }: FloatingContactPro
           justifyContent: "center",
         }}
       >
-        {open ? "✕" : "💬"}
+        {open ? <X size={20} /> : <MessageCircle size={20} />}
       </button>
     </motion.div>
   );
